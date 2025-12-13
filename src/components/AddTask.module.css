@@ -1,0 +1,216 @@
+.triggerBtn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 0;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.triggerBtn:hover {
+    color: var(--primary-color);
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: var(--primary-color);
+    font-size: 0.8rem;
+}
+
+.triggerBtn:hover .icon {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.container {
+    margin-top: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    background-color: var(--bg-color);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.input {
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    background: transparent;
+    color: var(--text-primary);
+    width: 100%;
+}
+
+.input::placeholder {
+    color: var(--text-secondary);
+}
+
+.optionsRow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+.dateInput {
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background-color: transparent;
+}
+
+.recurringLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
+}
+
+.addBtn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.addBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.cancelBtn {
+    background: #f5f5f5;
+    color: #555;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.cancelBtn:hover {
+    background: #e5e5e5;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cancelBtn {
+        background: #333;
+        color: #ccc;
+    }
+
+    .cancelBtn:hover {
+        background: #444;
+    }
+
+    .dateInput {
+        color-scheme: dark;
+    }
+}
+
+.frequencySelect {
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background-color: transparent;
+    margin-left: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .frequencySelect {
+        color-scheme: dark;
+        background-color: var(--bg-color);
+    }
+}
+
+.projectSelectWrapper {
+    display: flex;
+    align-items: center;
+}
+
+.projectSelect {
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background-color: transparent;
+    max-width: 150px;
+}
+
+.recurrenceOptions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.recurrenceText {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.intervalInput {
+    width: 40px;
+    padding: 2px 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    background-color: transparent;
+}
+
+.unitSelect {
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+    .recurrenceOptions {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .unitSelect {
+        color-scheme: dark;
+    }
+
+    .intervalInput {
+        color-scheme: dark;
+    }
+}

@@ -1,0 +1,125 @@
+.item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 12px;
+
+    transition: all 0.2s;
+}
+
+.item:hover {
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #808080;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.checkbox:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.checked {
+    background-color: #808080;
+    /* Gray for completed generally, Todoist style */
+    border-color: #808080;
+    opacity: 0.5;
+}
+
+.checkIcon {
+    color: white;
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.checked .checkIcon {
+    opacity: 1;
+}
+
+.contentWrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    cursor: text;
+}
+
+.completedText {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+.editInput {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.actions {
+    opacity: 0;
+    display: flex;
+    gap: 4px;
+    transition: opacity 0.2s;
+}
+
+.item:hover .actions {
+    opacity: 1;
+}
+
+.actionBtn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.actionBtn:hover {
+    color: var(--text-primary);
+}
+
+.date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.recurrenceInfo {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metaRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.projectTag {
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
