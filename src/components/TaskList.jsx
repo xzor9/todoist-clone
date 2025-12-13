@@ -29,14 +29,8 @@ export default function TaskList({ activeTab, onTaskClick }) {
 
     const filteredTasks = React.useMemo(() => {
         return tasks.filter(task => {
+            if (activeTab === 'all') return true;
             // Standard filters
-            if (activeTab === 'inbox') return !task.projectId && !task.dueDate;
-
-            // Note: Logic adjustment. Inbox should probably contain all tasks NOT in a project? or tasks in Inbox project?
-            // Todoist 'Inbox' is a project itself effectively.
-            // For our simplified model: 'inbox' tab shows tasks with NO project OR projectId "Inbox" (if we had one).
-            // Let's stick to: Inbox = No Project set.
-
             if (activeTab === 'inbox') {
                 // If we treat "Inbox" as default "no project"
                 return !task.projectId;
@@ -59,6 +53,7 @@ export default function TaskList({ activeTab, onTaskClick }) {
 
     const getPageTitle = () => {
         switch (activeTab) {
+            case 'all': return 'All Tasks';
             case 'inbox': return 'Inbox';
             case 'today': return 'Today';
             case 'upcoming': return 'Upcoming';

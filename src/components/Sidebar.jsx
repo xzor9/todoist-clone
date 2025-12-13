@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun } from 'react-icons/fa';
+import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun, FaLayerGroup } from 'react-icons/fa';
 import styles from './Sidebar.module.css';
 import AddProjectModal from './AddProjectModal';
 import { useDroppable } from '@dnd-kit/core';
@@ -43,6 +43,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         { id: 'inbox', label: 'Inbox', icon: <FaInbox color="#246fe0" /> },
         { id: 'today', label: 'Today', icon: <FaCalendarDay color="#058527" /> },
         { id: 'upcoming', label: 'Upcoming', icon: <FaCalendarAlt color="#692fc2" /> },
+        { id: 'all', label: 'All Tasks', icon: <FaLayerGroup color="#e34432" /> }, // Added All Tasks
     ];
 
     return (
