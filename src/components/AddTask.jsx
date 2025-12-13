@@ -5,15 +5,15 @@ import styles from './AddTask.module.css';
 import { FaPlus, FaInbox, FaHashtag } from 'react-icons/fa';
 import AddProjectModal from './AddProjectModal';
 
-export default function AddTask({ defaultDate }) {
-    const [isOpen, setIsOpen] = useState(false);
+export default function AddTask({ defaultDate, isModal, onClose }) {
+    const [isOpen, setIsOpen] = useState(isModal || false);
     const [content, setContent] = useState('');
     const [dueDate, setDueDate] = useState(defaultDate || '');
     const [isRecurring, setIsRecurring] = useState(false);
     const [recurrenceInterval, setRecurrenceInterval] = useState(1);
     const [recurrenceUnit, setRecurrenceUnit] = useState('Week');
 
-    // Project state
+    // ... (Project state matches original)
     const [projects, setProjects] = useState([]);
     const [selectedProjectId, setSelectedProjectId] = useState(null); // null = Inbox
     const [showProjectModal, setShowProjectModal] = useState(false);
@@ -27,6 +27,11 @@ export default function AddTask({ defaultDate }) {
         });
         return unsubscribe;
     }, [currentUser]);
+
+    // Force open if isModal
+    useEffect(() => {
+        if (isModal) setIsOpen(true);
+    }, [isModal]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,6 +53,8 @@ export default function AddTask({ defaultDate }) {
 
             setContent('');
             resetForm();
+            if (isModal && onClose) onClose();
+            if (!isModal) setIsOpen(false); // Close inline form on submit? Usually yes for Todoist simplicity
         } catch (error) {
             console.error("Failed to add task", error);
         }
@@ -58,10 +65,17 @@ export default function AddTask({ defaultDate }) {
         setIsRecurring(false);
         setRecurrenceInterval(1);
         setRecurrenceUnit('Week');
-        // Keep project selection? Todoist keeps it.
     };
 
-    if (!isOpen) {
+    const handleCancel = () => {
+        if (isModal && onClose) {
+            onClose();
+        } else {
+            setIsOpen(false);
+        }
+    };
+
+    if (!isOpen && !isModal) {
         return (
             <button className={styles.triggerBtn} onClick={() => setIsOpen(true)}>
                 <span className={styles.icon}><FaPlus /></span>
@@ -70,8 +84,8 @@ export default function AddTask({ defaultDate }) {
         );
     }
 
-    return (
-        <div className={styles.container}>
+    const formContent = (
+        <div className={isModal ? styles.modalContainer : styles.container} onClick={e => e.stopPropagation()}>
             <form onSubmit={handleSubmit} className={styles.form}>
                 <input
                     autoFocus
@@ -148,7 +162,7 @@ export default function AddTask({ defaultDate }) {
                     <button type="submit" className={styles.addBtn} disabled={!content.trim()}>
                         Add task
                     </button>
-                    <button type="button" className={styles.cancelBtn} onClick={() => setIsOpen(false)}>
+                    <button type="button" className={styles.cancelBtn} onClick={handleCancel}>
                         Cancel
                     </button>
                 </div>
@@ -159,10 +173,19 @@ export default function AddTask({ defaultDate }) {
                     onClose={() => setShowProjectModal(false)}
                     onProjectCreated={(newId) => {
                         setSelectedProjectId(newId);
-                        // Modal closes automatically via onClose in component, state update sufficient
                     }}
                 />
             )}
         </div>
     );
+
+    if (isModal) {
+        return (
+            <div className={styles.modalOverlay} onClick={handleCancel}>
+                {formContent}
+            </div>
+        );
+    }
+
+    return formContent;
 }

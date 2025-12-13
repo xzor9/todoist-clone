@@ -26,8 +26,13 @@ function DroppableProjectItem({ project, activeTab, setActiveTab }) {
     );
 }
 
+import { useTasks } from '../contexts/TasksContext';
+
+// ... (DroppableProjectItem omitted for brevity if unchanged, focused on Sidebar)
+
 export default function Sidebar({ activeTab, setActiveTab }) {
     const { currentUser, logout } = useAuth();
+    const { openAddTaskModal } = useTasks();
     const [projects, setProjects] = useState([]);
     const [showProjectModal, setShowProjectModal] = useState(false);
 
@@ -62,7 +67,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             </div>
 
             <div className={styles.actions}>
-                <button className={styles.addTaskBtn} onClick={() => { /* TODO: Open add task modal directly? */ }}>
+                <button className={styles.addTaskBtn} onClick={openAddTaskModal}>
                     <span className={styles.addIcon}><FaPlus /></span>
                     Add Task
                 </button>

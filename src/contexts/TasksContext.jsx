@@ -39,12 +39,20 @@ export function TasksProvider({ children }) {
         });
     };
 
+    const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+
+    const openAddTaskModal = () => setIsAddTaskModalOpen(true);
+    const closeAddTaskModal = () => setIsAddTaskModalOpen(false);
+
     const value = {
         tasks,
         setTasks, // Exposed for optimistic updates
         loading,
         reorderTasks,
-        updateTaskProject
+        updateTaskProject,
+        isAddTaskModalOpen,
+        openAddTaskModal,
+        closeAddTaskModal
     };
 
     return (

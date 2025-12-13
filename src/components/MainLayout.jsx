@@ -12,10 +12,11 @@ import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { FaBars } from 'react-icons/fa';
 import styles from './MainLayout.module.css';
 import { useTasks } from '../contexts/TasksContext';
+import AddTask from './AddTask';
 
 export default function MainLayout({ children, activeTab, setActiveTab }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const { setTasks, reorderTasks, updateTaskProject } = useTasks();
+    const { setTasks, reorderTasks, updateTaskProject, isAddTaskModalOpen, closeAddTaskModal } = useTasks();
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -111,6 +112,11 @@ export default function MainLayout({ children, activeTab, setActiveTab }) {
                 <main className={styles.main}>
                     {children}
                 </main>
+
+                {/* Global Add Task Modal */}
+                {isAddTaskModalOpen && (
+                    <AddTask isModal={true} onClose={closeAddTaskModal} />
+                )}
             </div>
         </DndContext>
     );
