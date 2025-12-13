@@ -16,6 +16,7 @@ import { toggleTaskCompletion } from '../services/todo';
 import { subscribeToProjects } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './UpcomingView.module.css';
+import AddTask from './AddTask';
 
 const WeekTaskCard = ({ task, projectName, projectColor, onTaskClick }) => {
     const handleToggle = (e) => {
@@ -118,9 +119,9 @@ const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader, onTaskClick
                 </div>
             )}
 
-            <button className={styles.addTaskBtn}>
-                <FaPlus /> Add task
-            </button>
+            <div className={styles.addTaskWrapper}>
+                <AddTask defaultDate={format(day, 'yyyy-MM-dd')} isCompact={true} />
+            </div>
         </div>
     );
 };

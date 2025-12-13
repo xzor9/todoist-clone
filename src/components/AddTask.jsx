@@ -5,7 +5,7 @@ import styles from './AddTask.module.css';
 import { FaPlus, FaInbox, FaHashtag } from 'react-icons/fa';
 import { useProjects } from '../contexts/projectHooks';
 
-export default function AddTask({ defaultDate, isModal, onClose }) {
+export default function AddTask({ defaultDate, isModal, onClose, isCompact }) {
     const [isOpen, setIsOpen] = useState(isModal || false);
     const [content, setContent] = useState('');
     const [description, setDescription] = useState('');
@@ -80,8 +80,15 @@ export default function AddTask({ defaultDate, isModal, onClose }) {
         );
     }
 
+
+    const containerClass = isModal
+        ? styles.modalContainer
+        : (isCompact ? styles.compactContainer : styles.container);
+
+    const optionsRowClass = isCompact ? styles.compactOptionsRow : styles.optionsRow;
+
     const formContent = (
-        <div className={isModal ? styles.modalContainer : styles.container} onClick={e => e.stopPropagation()}>
+        <div className={containerClass} onClick={e => e.stopPropagation()}>
             <form onSubmit={handleSubmit} className={styles.form}>
                 <input
                     autoFocus
@@ -91,15 +98,17 @@ export default function AddTask({ defaultDate, isModal, onClose }) {
                     onChange={(e) => setContent(e.target.value)}
                 />
 
-                <textarea
-                    className={styles.descriptionInput}
-                    placeholder="Description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={2}
-                />
+                {!isCompact && (
+                    <textarea
+                        className={styles.descriptionInput}
+                        placeholder="Description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={2}
+                    />
+                )}
 
-                <div className={styles.optionsRow}>
+                <div className={optionsRowClass}>
                     <input
                         type="date"
                         className={styles.dateInput}
