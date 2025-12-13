@@ -47,12 +47,36 @@
 }
 
 .input {
-    border: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
     outline: none;
     font-size: 0.95rem;
     background: transparent;
     color: var(--text-primary);
     width: 100%;
+}
+
+.input:focus {
+    border-color: #666;
+}
+
+.descriptionInput {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    outline: none;
+    font-size: 0.9rem;
+    background: transparent;
+    color: var(--text-secondary);
+    width: 100%;
+    resize: none;
+    font-family: inherit;
+    margin-bottom: 0.5rem;
+}
+
+.descriptionInput:focus {
+    border-color: #666;
 }
 
 .input::placeholder {

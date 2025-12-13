@@ -176,7 +176,9 @@ export default function TaskDetailModal({ taskId, onClose }) {
                                         placeholder="Task name"
                                         style={{
                                             background: 'transparent',
-                                            border: 'none',
+                                            border: '1px solid var(--border-color)',
+                                            borderRadius: '4px',
+                                            padding: '8px',
                                             color: 'var(--text-primary)',
                                             fontSize: '1.5rem',
                                             fontWeight: 'bold',
@@ -184,11 +186,16 @@ export default function TaskDetailModal({ taskId, onClose }) {
                                             outline: 'none',
                                             marginBottom: '1rem'
                                         }}
+                                        onFocus={(e) => e.target.style.borderColor = '#666'}
+                                        onBlur={(e) => {
+                                            e.target.style.borderColor = 'var(--border-color)';
+                                            handleTitleSave();
+                                        }}
                                     />
 
                                     {/* Description Input */}
                                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '1rem' }}>
-                                        <FaRegClock style={{ marginTop: '3px', color: 'var(--text-secondary)' }} />
+                                        <FaRegClock style={{ marginTop: '12px', color: 'var(--text-secondary)' }} />
                                         <textarea
                                             value={editDescription}
                                             onChange={(e) => setEditDescription(e.target.value)}
@@ -198,19 +205,18 @@ export default function TaskDetailModal({ taskId, onClose }) {
                                             style={{
                                                 background: 'transparent',
                                                 border: '1px solid var(--border-color)',
-                                                color: 'var(--text-primary)',
+                                                borderRadius: '4px',
+                                                padding: '8px',
                                                 color: 'var(--text-primary)',
                                                 fontSize: '0.9rem',
                                                 width: '100%',
                                                 outline: 'none',
                                                 resize: 'vertical',
-                                                fontFamily: 'inherit',
-                                                borderRadius: '4px',
-                                                padding: '4px'
+                                                fontFamily: 'inherit'
                                             }}
-                                            onFocus={(e) => e.target.style.borderColor = 'var(--border-color)'}
+                                            onFocus={(e) => e.target.style.borderColor = '#666'}
                                             onBlur={(e) => {
-                                                e.target.style.borderColor = 'transparent';
+                                                e.target.style.borderColor = 'var(--border-color)';
                                                 handleDescriptionSave();
                                             }}
                                         />

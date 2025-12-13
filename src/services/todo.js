@@ -156,11 +156,12 @@ export async function addProject(userId, name, color) {
     });
 }
 
-// Updated addTask to include project info
-export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null) {
+// Updated addTask to include project info and description
+export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null, description = "") {
     return addDoc(collection(db, COLLECTION_NAME), {
         userId,
         content,
+        description,
         isCompleted: false,
         createdAt: serverTimestamp(),
         dueDate: date,

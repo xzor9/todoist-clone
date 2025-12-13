@@ -8,6 +8,7 @@ import AddProjectModal from './AddProjectModal';
 export default function AddTask({ defaultDate, isModal, onClose }) {
     const [isOpen, setIsOpen] = useState(isModal || false);
     const [content, setContent] = useState('');
+    const [description, setDescription] = useState('');
     const [dueDate, setDueDate] = useState(defaultDate || '');
     const [isRecurring, setIsRecurring] = useState(false);
     const [recurrenceInterval, setRecurrenceInterval] = useState(1);
@@ -48,10 +49,12 @@ export default function AddTask({ defaultDate, isModal, onClose }) {
                 dueDate || null,
                 isRecurring,
                 recurrenceString,
-                selectedProjectId
+                selectedProjectId,
+                description
             );
 
             setContent('');
+            setDescription('');
             resetForm();
             if (isModal && onClose) onClose();
             if (!isModal) setIsOpen(false); // Close inline form on submit? Usually yes for Todoist simplicity
@@ -93,6 +96,14 @@ export default function AddTask({ defaultDate, isModal, onClose }) {
                     placeholder="Task name"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
+                />
+
+                <textarea
+                    className={styles.descriptionInput}
+                    placeholder="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
                 />
 
                 <div className={styles.optionsRow}>
