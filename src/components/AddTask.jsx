@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import styles from './AddTask.module.css';
 import { FaPlus, FaInbox, FaHashtag } from 'react-icons/fa';
 import { useProjects } from '../contexts/projectHooks';
+import AddProjectModal from './AddProjectModal';
 
 export default function AddTask({ defaultDate, isModal, onClose, isCompact }) {
     const [isOpen, setIsOpen] = useState(isModal || false);

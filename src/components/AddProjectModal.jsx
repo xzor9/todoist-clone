@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import styles from './AddProjectModal.module.css';
 import { addProject } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
+import EmojiPicker from 'emoji-picker-react';
+import { FaHashtag } from 'react-icons/fa';
 
 const COLORS = [
     { name: 'Berry Red', value: '#b8256f' },
@@ -29,6 +31,9 @@ const COLORS = [
 export default function AddProjectModal({ onClose, onProjectCreated }) {
     const [name, setName] = useState('');
     const [color, setColor] = useState(COLORS[11].value); // Default Blue
+    const [icon, setIcon] = useState(null); // Emoji character
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
     const { currentUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +43,7 @@ export default function AddProjectModal({ onClose, onProjectCreated }) {
 
         setIsLoading(true);
         try {
-            const docRef = await addProject(currentUser.uid, name, color);
+            const docRef = await addProject(currentUser.uid, name, color, icon);
             onProjectCreated(docRef.id);
             onClose();
         } catch (error) {
@@ -48,8 +53,8 @@ export default function AddProjectModal({ onClose, onProjectCreated }) {
     };
 
     return (
-        <div className={styles.overlay}>
-            <div className={styles.modal}>
+        <div className={styles.overlay} onClick={onClose}>
+            <div className={styles.modal} onClick={e => e.stopPropagation()}>
                 <h3 className={styles.title}>Add project</h3>
                 <form onSubmit={handleSubmit}>
                     <div className={styles.field}>
@@ -64,7 +69,61 @@ export default function AddProjectModal({ onClose, onProjectCreated }) {
                     </div>
 
                     <div className={styles.field}>
-                        <label className={styles.label}>Color</label>
+                        <label className={styles.label}>Icon & Color</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                            <button
+                                type="button"
+                                style={{
+                                    border: '1px solid #ddd',
+                                    borderRadius: '5px',
+                                    width: '40px',
+                                    height: '40px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    fontSize: '1.2rem',
+                                    color: color // Use selected color for Hashtag
+                                }}
+                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                            >
+                                {icon ? icon : <FaHashtag />}
+                            </button>
+                            <span style={{ fontSize: '0.9rem', color: '#666' }}>
+                                {icon ? 'Emoji selected' : 'Default icon'}
+                            </span>
+                            {icon && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIcon(null)}
+                                    style={{
+                                        border: 'none',
+                                        background: 'transparent',
+                                        color: '#db4035',
+                                        cursor: 'pointer',
+                                        fontSize: '0.8rem',
+                                        textDecoration: 'underline'
+                                    }}
+                                >
+                                    Remove Emoji
+                                </button>
+                            )}
+                        </div>
+
+                        {showEmojiPicker && (
+                            <div style={{ marginBottom: '10px' }}>
+                                <EmojiPicker
+                                    onEmojiClick={(emojiData) => {
+                                        setIcon(emojiData.emoji);
+                                        setShowEmojiPicker(false);
+                                    }}
+                                    width="100%"
+                                    height={300}
+                                />
+                            </div>
+                        )}
+
                         <div className={styles.colors}>
                             {COLORS.map(c => (
                                 <button

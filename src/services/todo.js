@@ -147,12 +147,20 @@ export function subscribeToProjects(userId, callback) {
     });
 }
 
-export async function addProject(userId, name, color) {
+export async function addProject(userId, name, color, icon = null) {
     return addDoc(collection(db, PROJECTS_COLLECTION), {
         userId,
         name,
         color,
+        icon, // Stores emoji character or null
         createdAt: serverTimestamp()
+    });
+}
+
+export async function updateProjectIcon(projectId, icon) {
+    const projectRef = doc(db, PROJECTS_COLLECTION, projectId);
+    return updateDoc(projectRef, {
+        icon: icon
     });
 }
 
