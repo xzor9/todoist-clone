@@ -1,21 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
-import Login from './components/Login';
-import MainLayout from './components/MainLayout';
-import Dashboard from './components/Dashboard';
+const Login = React.lazy(() => import('./components/Login'));
+const MainLayout = React.lazy(() => import('./components/MainLayout'));
+const Dashboard = React.lazy(() => import('./components/Dashboard'));
+
+const Loading = () => <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#666' }}>Loading...</div>;
 
 function App() {
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('inbox');
 
   if (!currentUser) {
-    return <Login />;
+    return (
+      <Suspense fallback={<Loading />}>
+        <Login />
+      </Suspense>
+    );
   }
 
   return (
-    <MainLayout activeTab={activeTab} setActiveTab={setActiveTab}>
-      <Dashboard activeTab={activeTab} />
-    </MainLayout>
+    <Suspense fallback={<Loading />}>
+      <MainLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+        <Dashboard activeTab={activeTab} />
+      </MainLayout>
+    </Suspense>
   );
 }
 

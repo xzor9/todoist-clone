@@ -26,33 +26,35 @@ export default function TaskList({ activeTab }) {
         };
     }, [currentUser]);
 
-    const filteredTasks = tasks.filter(task => {
-        // Standard filters
-        if (activeTab === 'inbox') return !task.projectId && !task.dueDate;
+    const filteredTasks = React.useMemo(() => {
+        return tasks.filter(task => {
+            // Standard filters
+            if (activeTab === 'inbox') return !task.projectId && !task.dueDate;
 
-        // Note: Logic adjustment. Inbox should probably contain all tasks NOT in a project? or tasks in Inbox project?
-        // Todoist 'Inbox' is a project itself effectively.
-        // For our simplified model: 'inbox' tab shows tasks with NO project OR projectId "Inbox" (if we had one).
-        // Let's stick to: Inbox = No Project set.
+            // Note: Logic adjustment. Inbox should probably contain all tasks NOT in a project? or tasks in Inbox project?
+            // Todoist 'Inbox' is a project itself effectively.
+            // For our simplified model: 'inbox' tab shows tasks with NO project OR projectId "Inbox" (if we had one).
+            // Let's stick to: Inbox = No Project set.
 
-        if (activeTab === 'inbox') {
-            // If we treat "Inbox" as default "no project"
-            return !task.projectId;
-        }
+            if (activeTab === 'inbox') {
+                // If we treat "Inbox" as default "no project"
+                return !task.projectId;
+            }
 
-        if (activeTab === 'today') {
-            if (!task.dueDate) return false;
-            return isToday(parseISO(task.dueDate));
-        }
+            if (activeTab === 'today') {
+                if (!task.dueDate) return false;
+                return isToday(parseISO(task.dueDate));
+            }
 
-        if (activeTab === 'upcoming') {
-            if (!task.dueDate) return false;
-            return parseISO(task.dueDate) >= startOfToday();
-        }
+            if (activeTab === 'upcoming') {
+                if (!task.dueDate) return false;
+                return parseISO(task.dueDate) >= startOfToday();
+            }
 
-        // Project Filters
-        return task.projectId === activeTab;
-    });
+            // Project Filters
+            return task.projectId === activeTab;
+        });
+    }, [tasks, activeTab]);
 
     const getPageTitle = () => {
         switch (activeTab) {
