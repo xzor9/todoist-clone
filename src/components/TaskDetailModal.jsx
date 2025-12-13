@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getTask, updateTaskContent, toggleTaskCompletion, updateTaskDescription, updateTaskProject, subscribeToProjects } from '../services/todo';
+import { getTask, updateTaskContent, toggleTaskCompletion, updateTaskDescription, updateTaskProject } from '../services/todo';
 import {
     FaTimes,
     FaEllipsisH,
@@ -8,10 +8,11 @@ import {
     FaCheck,
     FaCalendarAlt,
     FaRegClock,
-    FaHashtag,
-    FaPlus
+    FaHashtag
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
+import { useProjects } from '../contexts/ProjectsContext';
+import styles from './TaskDetailModal.module.css';
 
 export default function TaskDetailModal({ taskId, onClose }) {
     const { currentUser } = useAuth();
@@ -22,7 +23,7 @@ export default function TaskDetailModal({ taskId, onClose }) {
     const [editDescription, setEditDescription] = useState('');
 
     // Projects for dropdown
-    const [projects, setProjects] = useState([]);
+    const { projects } = useProjects();
     const [showProjectDropdown, setShowProjectDropdown] = useState(false);
 
     useEffect(() => {
@@ -49,12 +50,6 @@ export default function TaskDetailModal({ taskId, onClose }) {
         }
     }, [taskId]);
 
-    useEffect(() => {
-        if (currentUser) {
-            const unsubscribe = subscribeToProjects(currentUser.uid, setProjects);
-            return unsubscribe;
-        }
-    }, [currentUser]);
 
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
@@ -95,130 +90,61 @@ export default function TaskDetailModal({ taskId, onClose }) {
 
     if (!taskId) return null;
 
+    // Determine completion status for checkbox styling
+    const isCompleted = task?.isCompleted;
+
     return (
-        <div
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 1000
-            }}
-            onClick={handleBackdropClick}
-        >
-            <div
-                style={{
-                    backgroundColor: 'var(--bg-color)',
-                    width: '800px',
-                    maxWidth: '90%',
-                    height: '80vh',
-                    borderRadius: '10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    color: 'var(--text-primary)',
-                    boxShadow: 'var(--shadow-md)',
-                    border: '1px solid var(--border-color)'
-                }}
-            >
+        <div className={styles.overlay} onClick={handleBackdropClick}>
+            <div className={styles.modal}>
                 {/* Header */}
-                <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                <div className={styles.header}>
+                    <div className={styles.headerLeft}>
                         <span>#{getProjectName(task?.projectId)}</span>
                         {task?.isRecurring && <span>🔄</span>}
                     </div>
-                    <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-secondary)' }}>
-                        <FaChevronUp style={{ cursor: 'pointer' }} />
-                        <FaChevronDown style={{ cursor: 'pointer' }} />
-                        <FaEllipsisH style={{ cursor: 'pointer' }} />
-                        <FaTimes style={{ cursor: 'pointer' }} onClick={onClose} />
+                    <div className={styles.headerRight}>
+                        <FaChevronUp className={styles.clickableIcon} />
+                        <FaChevronDown className={styles.clickableIcon} />
+                        <FaEllipsisH className={styles.clickableIcon} />
+                        <FaTimes className={styles.clickableIcon} onClick={onClose} />
                     </div>
                 </div>
 
                 {loading ? (
-                    <div style={{ padding: '2rem' }}>Loading...</div>
+                    <div className={styles.loading}>Loading...</div>
                 ) : error ? (
-                    <div style={{ padding: '2rem', color: 'red' }}>{error}</div>
+                    <div className={styles.error}>{error}</div>
                 ) : (
-                    <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                    <div className={styles.contentWrapper}>
                         {/* Main Content */}
-                        <div style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
-                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                        <div className={styles.mainContent}>
+                            <div className={styles.taskHeader}>
                                 <div
                                     onClick={handleToggle}
-                                    style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        borderRadius: '50%',
-                                        border: `2px solid ${task.isCompleted ? 'var(--primary-color)' : 'var(--text-secondary)'}`,
-                                        backgroundColor: task.isCompleted ? 'var(--primary-color)' : 'transparent',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        flexShrink: 0,
-                                        marginTop: '4px'
-                                    }}
+                                    className={`${styles.checkbox} ${isCompleted ? styles.completed : ''}`}
                                 >
-                                    {task.isCompleted && <FaCheck size={12} color="white" />}
+                                    {isCompleted && <FaCheck size={12} color="white" />}
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div className={styles.inputWrapper}>
                                     {/* Title Input */}
                                     <input
                                         value={editTitle}
                                         onChange={(e) => setEditTitle(e.target.value)}
                                         onBlur={handleTitleSave}
                                         placeholder="Task name"
-                                        style={{
-                                            background: 'transparent',
-                                            border: '1px solid var(--border-color)',
-                                            borderRadius: '4px',
-                                            padding: '8px',
-                                            color: 'var(--text-primary)',
-                                            fontSize: '1.5rem',
-                                            fontWeight: 'bold',
-                                            width: '100%',
-                                            outline: 'none',
-                                            marginBottom: '1rem'
-                                        }}
-                                        onFocus={(e) => e.target.style.borderColor = '#666'}
-                                        onBlur={(e) => {
-                                            e.target.style.borderColor = 'var(--border-color)';
-                                            handleTitleSave();
-                                        }}
+                                        className={styles.titleInput}
                                     />
 
                                     {/* Description Input */}
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '1rem' }}>
-                                        <FaRegClock style={{ marginTop: '12px', color: 'var(--text-secondary)' }} />
+                                    <div className={styles.descriptionWrapper}>
+                                        <FaRegClock className={styles.descriptionIcon} />
                                         <textarea
                                             value={editDescription}
                                             onChange={(e) => setEditDescription(e.target.value)}
                                             onBlur={handleDescriptionSave}
                                             placeholder="Description"
                                             rows={5}
-                                            style={{
-                                                background: 'transparent',
-                                                border: '1px solid var(--border-color)',
-                                                borderRadius: '4px',
-                                                padding: '8px',
-                                                color: 'var(--text-primary)',
-                                                fontSize: '0.9rem',
-                                                width: '100%',
-                                                outline: 'none',
-                                                resize: 'vertical',
-                                                fontFamily: 'inherit'
-                                            }}
-                                            onFocus={(e) => e.target.style.borderColor = '#666'}
-                                            onBlur={(e) => {
-                                                e.target.style.borderColor = 'var(--border-color)';
-                                                handleDescriptionSave();
-                                            }}
+                                            className={styles.descriptionInput}
                                         />
                                     </div>
                                 </div>
@@ -226,12 +152,12 @@ export default function TaskDetailModal({ taskId, onClose }) {
                         </div>
 
                         {/* Sidebar */}
-                        <div style={{ width: '300px', background: 'var(--bg-sidebar)', padding: '1rem', borderLeft: '1px solid var(--border-color)', overflowY: 'auto' }}>
+                        <div className={styles.sidebar}>
                             {/* Project / Labels Renamed */}
-                            <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Project</div>
+                            <div className={styles.sidebarSection}>
+                                <div className={styles.sidebarLabel}>Project</div>
                                 <div
-                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
+                                    className={styles.projectSelector}
                                     onClick={() => setShowProjectDropdown(!showProjectDropdown)}
                                 >
                                     <FaHashtag color="var(--text-secondary)" />
@@ -239,21 +165,9 @@ export default function TaskDetailModal({ taskId, onClose }) {
                                 </div>
 
                                 {showProjectDropdown && (
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: '100%',
-                                        left: 0,
-                                        width: '100%',
-                                        backgroundColor: 'var(--bg-color)',
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: '4px',
-                                        boxShadow: 'var(--shadow-md)',
-                                        zIndex: 10,
-                                        maxHeight: '200px',
-                                        overflowY: 'auto'
-                                    }}>
+                                    <div className={styles.dropdown}>
                                         <div
-                                            style={{ padding: '8px', cursor: 'pointer', borderBottom: '1px solid var(--border-color)' }}
+                                            className={`${styles.dropdownItem} ${styles.bordered}`}
                                             onClick={() => handleProjectChange(null)}
                                         >
                                             Inbox
@@ -261,10 +175,10 @@ export default function TaskDetailModal({ taskId, onClose }) {
                                         {projects.map(p => (
                                             <div
                                                 key={p.id}
-                                                style={{ padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                                className={styles.dropdownItem}
                                                 onClick={() => handleProjectChange(p.id)}
                                             >
-                                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }}></span>
+                                                <span className={styles.projectColor} style={{ background: p.color }}></span>
                                                 {p.name}
                                             </div>
                                         ))}
@@ -272,18 +186,14 @@ export default function TaskDetailModal({ taskId, onClose }) {
                                 )}
                             </div>
 
-                            <div style={{ marginBottom: '1.5rem' }}>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Date</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div className={styles.sidebarSection}>
+                                <div className={styles.sidebarLabel}>Date</div>
+                                <div className={styles.dateDisplay}>
                                     <FaCalendarAlt color="#d1453b" />
                                     {task.dueDate || 'No due date'}
                                     {task.isRecurring && ' 🔄'}
                                 </div>
                             </div>
-
-                            {/* Removed Priority */}
-                            {/* Removed Labels (Converted to Project above) */}
-
                         </div>
                     </div>
                 )}

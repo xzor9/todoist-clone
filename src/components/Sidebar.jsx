@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun } from 'react-icons/fa';
 import styles from './Sidebar.module.css';
-import { subscribeToProjects } from '../services/todo';
 import AddProjectModal from './AddProjectModal';
 import { useDroppable } from '@dnd-kit/core';
 
@@ -27,6 +26,7 @@ function DroppableProjectItem({ project, activeTab, setActiveTab }) {
     );
 }
 
+import { useProjects } from '../contexts/ProjectsContext';
 import { useTasks } from '../contexts/TasksContext';
 
 // ... (DroppableProjectItem omitted for brevity if unchanged, focused on Sidebar)
@@ -35,16 +35,9 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     const { currentUser, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { openAddTaskModal } = useTasks();
-    const [projects, setProjects] = useState([]);
+    const { projects } = useProjects();
     const [showProjectModal, setShowProjectModal] = useState(false);
 
-    useEffect(() => {
-        if (!currentUser) return;
-        const unsubscribe = subscribeToProjects(currentUser.uid, (fetchedProjects) => {
-            setProjects(fetchedProjects);
-        });
-        return unsubscribe;
-    }, [currentUser]);
 
     const navItems = [
         { id: 'inbox', label: 'Inbox', icon: <FaInbox color="#246fe0" /> },

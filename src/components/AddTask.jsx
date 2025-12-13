@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { addTask, subscribeToProjects } from '../services/todo';
+import { addTask } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './AddTask.module.css';
 import { FaPlus, FaInbox, FaHashtag } from 'react-icons/fa';
-import AddProjectModal from './AddProjectModal';
+import { useProjects } from '../contexts/ProjectsContext';
 
 export default function AddTask({ defaultDate, isModal, onClose }) {
     const [isOpen, setIsOpen] = useState(isModal || false);
@@ -15,19 +15,12 @@ export default function AddTask({ defaultDate, isModal, onClose }) {
     const [recurrenceUnit, setRecurrenceUnit] = useState('Week');
 
     // ... (Project state matches original)
-    const [projects, setProjects] = useState([]);
+    const { projects } = useProjects();
     const [selectedProjectId, setSelectedProjectId] = useState(null); // null = Inbox
     const [showProjectModal, setShowProjectModal] = useState(false);
 
     const { currentUser } = useAuth();
 
-    useEffect(() => {
-        if (!currentUser) return;
-        const unsubscribe = subscribeToProjects(currentUser.uid, (fetchedProjects) => {
-            setProjects(fetchedProjects);
-        });
-        return unsubscribe;
-    }, [currentUser]);
 
     // Force open if isModal
     useEffect(() => {
