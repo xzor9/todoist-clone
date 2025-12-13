@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag } from 'react-icons/fa';
+import { useTheme } from '../contexts/ThemeContext';
+import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun } from 'react-icons/fa';
 import styles from './Sidebar.module.css';
 import { subscribeToProjects } from '../services/todo';
 import AddProjectModal from './AddProjectModal';
@@ -32,6 +33,7 @@ import { useTasks } from '../contexts/TasksContext';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
     const { currentUser, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const { openAddTaskModal } = useTasks();
     const [projects, setProjects] = useState([]);
     const [showProjectModal, setShowProjectModal] = useState(false);
@@ -112,6 +114,23 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                     </ul>
                 </div>
             </nav>
+
+            <div style={{ padding: '0 12px 12px 12px', marginTop: 'auto' }}>
+                <button
+                    onClick={toggleTheme}
+                    className={styles.navItem}
+                    style={{
+                        width: '100%',
+                        justifyContent: 'flex-start',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-secondary)'
+                    }}
+                >
+                    <span className={styles.icon}>{theme === 'dark' ? <FaSun /> : <FaMoon />}</span>
+                    <span className={styles.label}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+            </div>
 
             {showProjectModal && (
                 <AddProjectModal

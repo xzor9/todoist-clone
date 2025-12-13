@@ -1,5 +1,6 @@
 import React, { useState, Suspense } from 'react';
 import { useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 const Login = React.lazy(() => import('./components/Login'));
 const MainLayout = React.lazy(() => import('./components/MainLayout'));
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
@@ -20,9 +21,11 @@ function App() {
 
   return (
     <Suspense fallback={<Loading />}>
-      <MainLayout activeTab={activeTab} setActiveTab={setActiveTab}>
-        <Dashboard activeTab={activeTab} />
-      </MainLayout>
+      <ThemeProvider>
+        <MainLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+          <Dashboard activeTab={activeTab} />
+        </MainLayout>
+      </ThemeProvider>
     </Suspense>
   );
 }
