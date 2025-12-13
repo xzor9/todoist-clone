@@ -4,7 +4,7 @@ import { subscribeToProjects } from '../services/todo';
 import TaskItem from './TaskItem';
 import AddTask from './AddTask';
 import { isToday, parseISO, startOfToday } from 'date-fns';
-import { useTasks } from '../contexts/TasksContext';
+import { useTasks } from '../contexts/taskHooks';
 import {
     SortableContext,
     verticalListSortingStrategy,

@@ -3,7 +3,7 @@ import { addTask } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './AddTask.module.css';
 import { FaPlus, FaInbox, FaHashtag } from 'react-icons/fa';
-import { useProjects } from '../contexts/ProjectsContext';
+import { useProjects } from '../contexts/projectHooks';
 
 export default function AddTask({ defaultDate, isModal, onClose }) {
     const [isOpen, setIsOpen] = useState(isModal || false);

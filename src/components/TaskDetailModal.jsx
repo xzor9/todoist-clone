@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getTask, updateTaskContent, toggleTaskCompletion, updateTaskDescription, updateTaskProject } from '../services/todo';
+import { getTask, updateTaskContent, toggleTaskCompletion, updateTaskDescription, updateTaskProject, updateTaskDate } from '../services/todo';
 import {
     FaTimes,
     FaEllipsisH,
@@ -11,7 +11,7 @@ import {
     FaHashtag
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
-import { useProjects } from '../contexts/ProjectsContext';
+import { useProjects } from '../contexts/projectHooks';
 import styles from './TaskDetailModal.module.css';
 
 export default function TaskDetailModal({ taskId, onClose }) {
@@ -21,6 +21,14 @@ export default function TaskDetailModal({ taskId, onClose }) {
     const [error, setError] = useState(null);
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
+
+    // Date & Recurrence State
+    const [editDueDate, setEditDueDate] = useState('');
+    const [isRecurring, setIsRecurring] = useState(false);
+    const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+    const [recurrenceUnit, setRecurrenceUnit] = useState('Week');
+    const [showDateEdit, setShowDateEdit] = useState(false);
+
 
     // Projects for dropdown
     const { projects } = useProjects();
@@ -35,6 +43,25 @@ export default function TaskDetailModal({ taskId, onClose }) {
                     setTask(fetchedTask);
                     setEditTitle(fetchedTask.content);
                     setEditDescription(fetchedTask.description || '');
+                    setEditDueDate(fetchedTask.dueDate || '');
+                    setIsRecurring(fetchedTask.isRecurring || false);
+
+                    // Parse recurrence string if exists (Simple parsing)
+                    if (fetchedTask.recurrence) {
+                        // Example: "Every 2 Weeks"
+                        // Very basic parser matching AddTask logic
+                        const parts = fetchedTask.recurrence.split(' ');
+                        // parts[0] = "Every"
+                        // parts[1] = number
+                        // parts[2] = Unit(s)
+                        if (parts.length >= 3) {
+                            setRecurrenceInterval(parseInt(parts[1]) || 1);
+                            let unit = parts[2];
+                            if (unit.endsWith('s')) unit = unit.slice(0, -1);
+                            setRecurrenceUnit(unit);
+                        }
+                    }
+
                 } else {
                     setError('Task not found');
                 }
@@ -69,6 +96,21 @@ export default function TaskDetailModal({ taskId, onClose }) {
             await updateTaskDescription(taskId, editDescription);
             setTask(prev => ({ ...prev, description: editDescription }));
         }
+    };
+
+    const handleDateSave = async () => {
+        const recurrenceString = isRecurring
+            ? `Every ${recurrenceInterval} ${recurrenceUnit}${recurrenceInterval > 1 ? 's' : ''}`
+            : null;
+
+        await updateTaskDate(taskId, editDueDate || null, isRecurring, recurrenceString);
+        setTask(prev => ({
+            ...prev,
+            dueDate: editDueDate || null,
+            isRecurring: isRecurring,
+            recurrence: recurrenceString
+        }));
+        setShowDateEdit(false);
     };
 
     const handleToggle = async () => {
@@ -188,11 +230,85 @@ export default function TaskDetailModal({ taskId, onClose }) {
 
                             <div className={styles.sidebarSection}>
                                 <div className={styles.sidebarLabel}>Date</div>
-                                <div className={styles.dateDisplay}>
-                                    <FaCalendarAlt color="#d1453b" />
-                                    {task.dueDate || 'No due date'}
-                                    {task.isRecurring && ' 🔄'}
-                                </div>
+
+                                {!showDateEdit ? (
+                                    <div
+                                        className={styles.dateDisplay}
+                                        onClick={() => setShowDateEdit(true)}
+                                        style={{ cursor: 'pointer', padding: '4px', borderRadius: '4px', transition: 'background-color 0.2s' }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--hover-color)'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                        <FaCalendarAlt color="#d1453b" />
+                                        {task.dueDate || 'No due date'}
+                                        {task.isRecurring && ' 🔄'}
+                                    </div>
+                                ) : (
+                                    <div style={{ padding: '8px', border: '1px solid var(--border-color)', borderRadius: '4px', backgroundColor: 'var(--bg-color)' }}>
+                                        <input
+                                            type="date"
+                                            value={editDueDate}
+                                            onChange={(e) => setEditDueDate(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '4px',
+                                                marginBottom: '8px',
+                                                border: '1px solid var(--border-color)',
+                                                borderRadius: '4px',
+                                                background: 'var(--bg-color)',
+                                                color: 'var(--text-primary)'
+                                            }}
+                                        />
+
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.9rem' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isRecurring}
+                                                onChange={(e) => setIsRecurring(e.target.checked)}
+                                            />
+                                            Recurring
+                                        </label>
+
+                                        {isRecurring && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+                                                <span style={{ fontSize: '0.8rem' }}>Every</span>
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max="99"
+                                                    value={recurrenceInterval}
+                                                    onChange={(e) => setRecurrenceInterval(parseInt(e.target.value) || 1)}
+                                                    style={{ width: '40px', padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                                                />
+                                                <select
+                                                    value={recurrenceUnit}
+                                                    onChange={(e) => setRecurrenceUnit(e.target.value)}
+                                                    style={{ flex: 1, padding: '4px', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+                                                >
+                                                    <option value="Day">Day</option>
+                                                    <option value="Week">Week</option>
+                                                    <option value="Month">Month</option>
+                                                    <option value="Year">Year</option>
+                                                </select>
+                                            </div>
+                                        )}
+
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                            <button
+                                                onClick={() => setShowDateEdit(false)}
+                                                style={{ padding: '4px 8px', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleDateSave}
+                                                style={{ padding: '4px 12px', border: 'none', borderRadius: '4px', background: 'var(--primary-color)', color: 'white', cursor: 'pointer' }}
+                                            >
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

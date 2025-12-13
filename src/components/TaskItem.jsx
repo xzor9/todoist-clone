@@ -7,7 +7,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FaGripVertical } from 'react-icons/fa';
 
-import { useProjects } from '../contexts/ProjectsContext';
+import { useProjects } from '../contexts/projectHooks';
 
 export default function TaskItem({ task, onTaskClick }) {
     const [isEditing, setIsEditing] = useState(false);

@@ -195,3 +195,12 @@ export async function updateTaskProject(taskId, projectId) {
         projectId: projectId
     });
 }
+
+export async function updateTaskDate(taskId, date, isRecurring, recurrence) {
+    const taskRef = doc(db, COLLECTION_NAME, taskId);
+    return updateDoc(taskRef, {
+        dueDate: date,
+        isRecurring: isRecurring,
+        recurrence: recurrence
+    });
+}

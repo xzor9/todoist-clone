@@ -1,16 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
 import { subscribeToTasks, reorderTasks } from '../services/todo';
 import { doc as firestoreDoc, updateDoc as firestoreUpdateDoc } from 'firebase/firestore';
+import { TasksContext } from './taskHooks';
 
-const TasksContext = createContext();
-
-export function useTasks() {
-    return useContext(TasksContext);
-}
-
-export function TasksProvider({ children }) {
+export default function TasksProvider({ children }) {
     const { currentUser } = useAuth();
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);

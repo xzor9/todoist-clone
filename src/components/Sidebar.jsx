@@ -26,8 +26,8 @@ function DroppableProjectItem({ project, activeTab, setActiveTab }) {
     );
 }
 
-import { useProjects } from '../contexts/ProjectsContext';
-import { useTasks } from '../contexts/TasksContext';
+import { useProjects } from '../contexts/projectHooks';
+import { useTasks } from '../contexts/taskHooks';
 
 // ... (DroppableProjectItem omitted for brevity if unchanged, focused on Sidebar)
 

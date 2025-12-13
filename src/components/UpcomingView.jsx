@@ -11,7 +11,7 @@ import {
     isTomorrow
 } from 'date-fns';
 import { FaChevronLeft, FaChevronRight, FaPlus, FaRegCircle, FaCheckCircle, FaChevronDown } from 'react-icons/fa';
-import { useTasks } from '../contexts/TasksContext';
+import { useTasks } from '../contexts/taskHooks';
 import { toggleTaskCompletion } from '../services/todo';
 import { subscribeToProjects } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';

@@ -11,7 +11,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { FaBars } from 'react-icons/fa';
 import styles from './MainLayout.module.css';
-import { useTasks } from '../contexts/TasksContext';
+import { useTasks } from '../contexts/taskHooks';
 import AddTask from './AddTask';
 
 export default function MainLayout({ children, activeTab, setActiveTab }) {

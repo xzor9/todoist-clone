@@ -1,14 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { subscribeToProjects } from '../services/todo';
+import { ProjectsContext } from './projectHooks';
 
-const ProjectsContext = createContext();
-
-export function useProjects() {
-    return useContext(ProjectsContext);
-}
-
-export function ProjectsProvider({ children }) {
+export default function ProjectsProvider({ children }) {
     const { currentUser } = useAuth();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
