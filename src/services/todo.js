@@ -170,3 +170,27 @@ export async function addTask(userId, content, date = null, isRecurring = false,
         order: Date.now() // Simple default order: new tasks at bottom (timestamp is increasing)
     });
 }
+
+// Helper to get a single task (for modal)
+export async function getTask(taskId) {
+    const taskRef = doc(db, COLLECTION_NAME, taskId);
+    const taskSnap = await getDoc(taskRef);
+    if (taskSnap.exists()) {
+        return { id: taskSnap.id, ...taskSnap.data() };
+    }
+    return null;
+}
+
+export async function updateTaskDescription(taskId, description) {
+    const taskRef = doc(db, COLLECTION_NAME, taskId);
+    return updateDoc(taskRef, {
+        description: description
+    });
+}
+
+export async function updateTaskProject(taskId, projectId) {
+    const taskRef = doc(db, COLLECTION_NAME, taskId);
+    return updateDoc(taskRef, {
+        projectId: projectId
+    });
+}

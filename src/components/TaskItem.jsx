@@ -7,7 +7,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FaGripVertical } from 'react-icons/fa';
 
-export default function TaskItem({ task }) {
+export default function TaskItem({ task, onTaskClick }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(task.content);
     const [project, setProject] = useState(null);
@@ -102,7 +102,8 @@ export default function TaskItem({ task }) {
                     <>
                         <span
                             className={`${styles.content} ${task.isCompleted ? styles.completedText : ''}`}
-                            onClick={() => setIsEditing(true)}
+                            onClick={() => onTaskClick && onTaskClick(task.id)}
+                            style={{ cursor: 'pointer' }}
                         >
                             {task.content}
                         </span>

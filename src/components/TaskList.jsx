@@ -12,7 +12,7 @@ import {
 import { FaChevronRight, FaChevronDown } from 'react-icons/fa';
 
 
-export default function TaskList({ activeTab }) {
+export default function TaskList({ activeTab, onTaskClick }) {
     const { currentUser } = useAuth();
     const { tasks, loading } = useTasks();
     const [projects, setProjects] = useState([]);
@@ -103,7 +103,7 @@ export default function TaskList({ activeTab }) {
                 >
                     <div style={{ marginBottom: '2rem' }}>
                         {activeTasks.map(task => (
-                            <TaskItem key={task.id} task={task} />
+                            <TaskItem key={task.id} task={task} onTaskClick={onTaskClick} />
                         ))}
                     </div>
                 </SortableContext>
@@ -130,7 +130,7 @@ export default function TaskList({ activeTab }) {
                     {showCompleted && (
                         <div style={{ opacity: 0.7 }}>
                             {completedTasks.map(task => (
-                                <TaskItem key={task.id} task={task} />
+                                <TaskItem key={task.id} task={task} onTaskClick={onTaskClick} />
                             ))}
                         </div>
                     )}

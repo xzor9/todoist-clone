@@ -17,7 +17,7 @@ import { subscribeToProjects } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './UpcomingView.module.css';
 
-const WeekTaskCard = ({ task, projectName, projectColor }) => {
+const WeekTaskCard = ({ task, projectName, projectColor, onTaskClick }) => {
     const handleToggle = (e) => {
         e.stopPropagation();
         toggleTaskCompletion(task.id, task.isCompleted);
@@ -39,7 +39,7 @@ const WeekTaskCard = ({ task, projectName, projectColor }) => {
                 >
                     {task.isCompleted && <FaCheckCircle color="white" size={12} />}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => onTaskClick && onTaskClick(task.id)}>
                     <div className={styles.taskText} style={{ textDecoration: task.isCompleted ? 'line-through' : 'none', color: task.isCompleted ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
                         {task.content}
                     </div>
@@ -64,7 +64,7 @@ const WeekTaskCard = ({ task, projectName, projectColor }) => {
     );
 };
 
-const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader }) => {
+const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader, onTaskClick }) => {
     const [showCompleted, setShowCompleted] = useState(false);
 
     // Sort logic could go here, but default is usually fine
@@ -86,6 +86,7 @@ const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader }) => {
                         task={task}
                         projectName={name}
                         projectColor={color}
+                        onTaskClick={onTaskClick}
                     />
                 );
             })}
@@ -109,6 +110,7 @@ const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader }) => {
                                     task={task}
                                     projectName={name}
                                     projectColor={color}
+                                    onTaskClick={onTaskClick}
                                 />
                             </div>
                         );
@@ -123,7 +125,7 @@ const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader }) => {
     );
 };
 
-export default function UpcomingView() {
+export default function UpcomingView({ onTaskClick }) {
     const { tasks, loading } = useTasks();
     const { currentUser } = useAuth();
     const [startDate, setStartDate] = useState(startOfToday());
@@ -201,6 +203,7 @@ export default function UpcomingView() {
                             dayTasks={dayTasks}
                             getProjectDetails={getProjectDetails}
                             getDayHeader={getDayHeader}
+                            onTaskClick={onTaskClick}
                         />
                     );
                 })}
