@@ -9,8 +9,10 @@ import {
     updateDoc,
     deleteDoc,
     writeBatch,
-    serverTimestamp
+    serverTimestamp,
+    getDoc
 } from 'firebase/firestore';
+import { addDays, addWeeks, addMonths, parseISO, format } from 'date-fns';
 
 const COLLECTION_NAME = 'tasks';
 
@@ -48,8 +50,56 @@ export function subscribeToTasks(userId, callback) {
 
 export async function toggleTaskCompletion(taskId, currentStatus) {
     const taskRef = doc(db, COLLECTION_NAME, taskId);
+
+    // If we are un-completing, just basic toggle
+    if (currentStatus) {
+        return updateDoc(taskRef, {
+            isCompleted: false
+        });
+    }
+
+    // If completing, check for recurrence
+    const taskSnap = await getDoc(taskRef);
+    if (!taskSnap.exists()) return;
+
+    const task = taskSnap.data();
+
+    if (task.isRecurring && task.recurrence) {
+        // Calculate next date
+        let nextDate = null;
+        const currentDueDate = task.dueDate ? parseISO(task.dueDate) : new Date();
+
+        const lowerRecurrence = task.recurrence.toLowerCase();
+
+        if (lowerRecurrence.includes('day') || lowerRecurrence === 'daily') {
+            const match = lowerRecurrence.match(/every (\d+) day/);
+            const days = match ? parseInt(match[1]) : 1;
+            nextDate = addDays(currentDueDate, days);
+        } else if (lowerRecurrence.includes('week') || lowerRecurrence === 'weekly') {
+            const match = lowerRecurrence.match(/every (\d+) week/);
+            const weeks = match ? parseInt(match[1]) : 1;
+            nextDate = addWeeks(currentDueDate, weeks);
+        } else if (lowerRecurrence.includes('month') || lowerRecurrence === 'monthly') {
+            const match = lowerRecurrence.match(/every (\d+) month/);
+            const months = match ? parseInt(match[1]) : 1;
+            nextDate = addMonths(currentDueDate, months);
+        }
+
+        if (nextDate) {
+            // Create next task
+            await addTask(
+                task.userId,
+                task.content,
+                format(nextDate, 'yyyy-MM-dd'),
+                true,
+                task.recurrence,
+                task.projectId
+            );
+        }
+    }
+
     return updateDoc(taskRef, {
-        isCompleted: !currentStatus
+        isCompleted: true
     });
 }
 

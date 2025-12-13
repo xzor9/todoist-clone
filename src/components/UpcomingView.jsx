@@ -10,33 +10,12 @@ import {
     isToday,
     isTomorrow
 } from 'date-fns';
-import { FaChevronLeft, FaChevronRight, FaPlus, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaPlus, FaRegCircle, FaCheckCircle, FaChevronDown } from 'react-icons/fa';
 import { useTasks } from '../contexts/TasksContext';
 import { toggleTaskCompletion } from '../services/todo';
-import styles from './UpcomingView.module.css';
-
-// Helper component to resolve project name
-const ProjectTag = ({ projectId }) => {
-    // In a real app we'd have this in context. For now, small component that fetches or subscribes?
-    // Subscribing per card is bad. 
-    // Let's rely on a simple assumption: We should have projects loaded. 
-    // Let's refactor proper to useProjects context if we can.
-    // For now, let's look at how TaskList did it.
-    // TaskList subscribed to projects. Let's do that at the top level of UpcomingView.
-    return (
-        <span className={styles.projectLabel}>
-            {/* Placeholder will be replaced by parent passing project or context */}
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#808080' }}></span>
-            #{projectId.substring(0, 4)}... {/* Truncate for now if we can't find name easily without refactor */}
-        </span>
-    );
-};
-
-// ... unused for a moment.
-
-// Better approach: Lift project subscription to UpcomingView
 import { subscribeToProjects } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
+import styles from './UpcomingView.module.css';
 
 const WeekTaskCard = ({ task, projectName, projectColor }) => {
     const handleToggle = (e) => {
@@ -60,7 +39,7 @@ const WeekTaskCard = ({ task, projectName, projectColor }) => {
                 >
                     {task.isCompleted && <FaCheckCircle color="white" size={12} />}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}> {/* specific minWidth helps text truncation if needed */}
+                <div style={{ flex: 1, minWidth: 0 }}>
                     <div className={styles.taskText} style={{ textDecoration: task.isCompleted ? 'line-through' : 'none', color: task.isCompleted ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
                         {task.content}
                     </div>
@@ -81,6 +60,65 @@ const WeekTaskCard = ({ task, projectName, projectColor }) => {
                     </div>
                 </div>
             </div>
+        </div>
+    );
+};
+
+const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader }) => {
+    const [showCompleted, setShowCompleted] = useState(false);
+
+    // Sort logic could go here, but default is usually fine
+    const activeTasks = dayTasks.filter(t => !t.isCompleted);
+    const completedTasks = dayTasks.filter(t => t.isCompleted);
+
+    return (
+        <div className={styles.dayColumn}>
+            <div className={styles.dayHeader}>
+                {getDayHeader(day)}
+                <span className={styles.taskCount}>{dayTasks.length}</span>
+            </div>
+
+            {activeTasks.map(task => {
+                const { name, color } = getProjectDetails(task.projectId);
+                return (
+                    <WeekTaskCard
+                        key={task.id}
+                        task={task}
+                        projectName={name}
+                        projectColor={color}
+                    />
+                );
+            })}
+
+            {completedTasks.length > 0 && (
+                <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+                    <button
+                        onClick={() => setShowCompleted(!showCompleted)}
+                        className={styles.addTaskBtn}
+                        style={{ opacity: 0.7, fontSize: '0.8rem', width: '100%' }}
+                    >
+                        {showCompleted ? <FaChevronDown /> : <FaChevronRight />}
+                        completed {completedTasks.length}
+                    </button>
+
+                    {showCompleted && completedTasks.map(task => {
+                        const { name, color } = getProjectDetails(task.projectId);
+                        return (
+                            <div key={task.id} style={{ opacity: 0.6 }}>
+                                <WeekTaskCard
+                                    task={task}
+                                    projectName={name}
+                                    projectColor={color}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            <button className={styles.addTaskBtn}>
+                <FaPlus /> Add task
+            </button>
         </div>
     );
 };
@@ -157,28 +195,13 @@ export default function UpcomingView() {
                     const dayTasks = tasksByDate[dateKey] || [];
 
                     return (
-                        <div key={dateKey} className={styles.dayColumn}>
-                            <div className={styles.dayHeader}>
-                                {getDayHeader(day)}
-                                <span className={styles.taskCount}>{dayTasks.length}</span>
-                            </div>
-
-                            {dayTasks.map(task => {
-                                const { name, color } = getProjectDetails(task.projectId);
-                                return (
-                                    <WeekTaskCard
-                                        key={task.id}
-                                        task={task}
-                                        projectName={name}
-                                        projectColor={color}
-                                    />
-                                );
-                            })}
-
-                            <button className={styles.addTaskBtn}>
-                                <FaPlus /> Add task
-                            </button>
-                        </div>
+                        <DayColumn
+                            key={dateKey}
+                            day={day}
+                            dayTasks={dayTasks}
+                            getProjectDetails={getProjectDetails}
+                            getDayHeader={getDayHeader}
+                        />
                     );
                 })}
             </div>

@@ -9,6 +9,7 @@ import {
     SortableContext,
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { FaChevronRight, FaChevronDown } from 'react-icons/fa';
 
 
 export default function TaskList({ activeTab }) {
@@ -79,11 +80,17 @@ export default function TaskList({ activeTab }) {
         return <div style={{ padding: '2rem', color: 'var(--text-secondary)' }}>Loading tasks...</div>;
     }
 
+    const [showCompleted, setShowCompleted] = useState(false);
+
+    // Separating active and completed tasks
+    const activeTasks = React.useMemo(() => filteredTasks.filter(t => !t.isCompleted), [filteredTasks]);
+    const completedTasks = React.useMemo(() => filteredTasks.filter(t => t.isCompleted), [filteredTasks]);
+
     return (
         <div>
             <h2 style={{ marginBottom: '1rem', fontSize: '1.2rem', fontWeight: 700 }}>{getPageTitle()}</h2>
 
-            {filteredTasks.length === 0 ? (
+            {activeTasks.length === 0 && completedTasks.length === 0 ? (
                 <div style={{ padding: '2rem 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
                     <p>No tasks found in {getPageTitle()}.</p>
                     <p>All clear!</p>
@@ -91,15 +98,43 @@ export default function TaskList({ activeTab }) {
                 </div>
             ) : (
                 <SortableContext
-                    items={filteredTasks}
+                    items={activeTasks}
                     strategy={verticalListSortingStrategy}
                 >
-                    <div>
-                        {filteredTasks.map(task => (
+                    <div style={{ marginBottom: '2rem' }}>
+                        {activeTasks.map(task => (
                             <TaskItem key={task.id} task={task} />
                         ))}
                     </div>
                 </SortableContext>
+            )}
+
+            {completedTasks.length > 0 && (
+                <div style={{ marginTop: '1rem' }}>
+                    <button
+                        onClick={() => setShowCompleted(!showCompleted)}
+                        style={{
+                            background: 'transparent',
+                            color: 'var(--text-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            fontSize: '0.9rem',
+                            padding: '0.5rem 0'
+                        }}
+                    >
+                        {showCompleted ? <FaChevronDown size={12} /> : <FaChevronRight size={12} />}
+                        Completed {completedTasks.length}
+                    </button>
+
+                    {showCompleted && (
+                        <div style={{ opacity: 0.7 }}>
+                            {completedTasks.map(task => (
+                                <TaskItem key={task.id} task={task} />
+                            ))}
+                        </div>
+                    )}
+                </div>
             )}
 
             <AddTask defaultDate={getDefaultDateForAdd()} />
