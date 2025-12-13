@@ -1,21 +1,26 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun, FaLayerGroup } from 'react-icons/fa';
+import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun, FaLayerGroup, FaTrash } from 'react-icons/fa';
 import styles from './Sidebar.module.css';
 import AddProjectModal from './AddProjectModal';
 import { useDroppable } from '@dnd-kit/core';
 import EmojiPicker from 'emoji-picker-react';
-import { updateProjectIcon } from '../services/todo';
+import { updateProjectIcon, deleteProject } from '../services/todo';
+import { useProjects } from '../contexts/projectHooks';
+import { useTasks } from '../contexts/taskHooks';
+
+import ConfirmationModal from './ConfirmationModal';
 
 // Internal Droppable Component for Project Items
-function DroppableProjectItem({ project, activeTab, setActiveTab }) {
+function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProject }) {
     const { setNodeRef, isOver } = useDroppable({
         id: `project-${project.id}`,
         data: { type: 'project', projectId: project.id }
     });
 
     const [showPicker, setShowPicker] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
     const pickerRef = useRef(null);
 
     // Close picker when clicking outside
@@ -43,11 +48,23 @@ function DroppableProjectItem({ project, activeTab, setActiveTab }) {
         setShowPicker(false);
     };
 
+    const handleDeleteClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onDeleteProject(project);
+    };
+
     return (
-        <div ref={setNodeRef} style={{ opacity: isOver ? 0.7 : 1, transition: 'opacity 0.2s', position: 'relative' }}>
-            <li
+        <div
+            style={{ opacity: isOver ? 0.7 : 1, transition: 'opacity 0.2s', position: 'relative' }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <div
+                ref={setNodeRef}
                 className={`${styles.navItem} ${activeTab === project.id ? styles.active : ''} ${isOver ? styles.droppableActive : ''}`}
                 onClick={() => setActiveTab(project.id)}
+                style={{ paddingRight: '30px', display: 'flex', alignItems: 'center' }}
             >
                 <div
                     onClick={handleIconClick}
@@ -68,8 +85,37 @@ function DroppableProjectItem({ project, activeTab, setActiveTab }) {
                         <span className={styles.icon} style={{ color: project.color }}><FaHashtag /></span>
                     )}
                 </div>
-                <span className={styles.label}>{project.name}</span>
-            </li>
+                <span className={styles.label} style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {project.name}
+                </span>
+            </div>
+
+            <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={handleDeleteClick}
+                className={styles.deleteBtn}
+                style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-secondary)', // Subtle by default
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderRadius: '4px',
+                    zIndex: 20,
+                    opacity: 0.6 // Slightly transparent
+                }}
+                title="Delete Project"
+                onMouseEnter={(e) => { e.target.style.color = '#db4035'; e.target.style.opacity = '1'; }}
+                onMouseLeave={(e) => { e.target.style.color = 'var(--text-secondary)'; e.target.style.opacity = '0.6'; }}
+            >
+                <FaTrash size={12} />
+            </button>
 
             {showPicker && (
                 <div
@@ -95,25 +141,31 @@ function DroppableProjectItem({ project, activeTab, setActiveTab }) {
     );
 }
 
-import { useProjects } from '../contexts/projectHooks';
-import { useTasks } from '../contexts/taskHooks';
-
-// ... (DroppableProjectItem omitted for brevity if unchanged, focused on Sidebar)
-
 export default function Sidebar({ activeTab, setActiveTab }) {
     const { currentUser, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { openAddTaskModal } = useTasks();
     const { projects } = useProjects();
     const [showProjectModal, setShowProjectModal] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState(null);
 
 
     const navItems = [
         { id: 'inbox', label: 'Inbox', icon: <FaInbox color="#246fe0" /> },
         { id: 'today', label: 'Today', icon: <FaCalendarDay color="#058527" /> },
         { id: 'upcoming', label: 'Upcoming', icon: <FaCalendarAlt color="#692fc2" /> },
-        { id: 'all', label: 'All Tasks', icon: <FaLayerGroup color="#e34432" /> }, // Added All Tasks
+        { id: 'all', label: 'All Tasks', icon: <FaLayerGroup color="#e34432" /> },
     ];
+
+    const handleDeleteConfirm = async () => {
+        if (projectToDelete) {
+            await deleteProject(projectToDelete.id);
+            if (activeTab === projectToDelete.id) {
+                setActiveTab('inbox');
+            }
+            setProjectToDelete(null);
+        }
+    };
 
     return (
         <aside className={styles.sidebar}>
@@ -172,6 +224,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                                 project={project}
                                 activeTab={activeTab}
                                 setActiveTab={setActiveTab}
+                                onDeleteProject={setProjectToDelete}
                             />
                         ))}
                     </ul>
@@ -201,6 +254,17 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                     onProjectCreated={(newId) => {
                         setActiveTab(newId);
                     }}
+                />
+            )}
+
+            {projectToDelete && (
+                <ConfirmationModal
+                    title="Delete Project"
+                    message={`Are you sure you want to delete "${projectToDelete.name}"? Tasks in this project will not be deleted but will lose their project association.`}
+                    confirmLabel="Delete"
+                    isDangerous={true}
+                    onConfirm={handleDeleteConfirm}
+                    onCancel={() => setProjectToDelete(null)}
                 />
             )}
         </aside>

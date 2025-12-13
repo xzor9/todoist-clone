@@ -164,6 +164,11 @@ export async function updateProjectIcon(projectId, icon) {
     });
 }
 
+export async function deleteProject(projectId) {
+    const projectRef = doc(db, PROJECTS_COLLECTION, projectId);
+    return deleteDoc(projectRef);
+}
+
 // Updated addTask to include project info and description
 export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null, description = "") {
     return addDoc(collection(db, COLLECTION_NAME), {
