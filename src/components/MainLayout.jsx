@@ -105,7 +105,11 @@ export default function MainLayout({ children, activeTab, setActiveTab }) {
 
                 {/* Sidebar Wrapper */}
                 <div className={`${styles.sidebarWrapper} ${isSidebarOpen ? styles.open : ''}`}>
-                    <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+                    <Sidebar
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                        closeSidebar={() => setIsSidebarOpen(false)}
+                    />
                 </div>
 
                 {/* Main Content */}

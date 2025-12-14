@@ -141,7 +141,7 @@ function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProjec
     );
 }
 
-export default function Sidebar({ activeTab, setActiveTab }) {
+export default function Sidebar({ activeTab, setActiveTab, closeSidebar }) {
     const { currentUser, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { openAddTaskModal } = useTasks();
@@ -167,6 +167,13 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         }
     };
 
+    const handleTabClick = (id) => {
+        setActiveTab(id);
+        if (window.innerWidth <= 768 && closeSidebar) {
+            closeSidebar();
+        }
+    }
+
     return (
         <aside className={styles.sidebar}>
             <div className={styles.header}>
@@ -184,7 +191,10 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             </div>
 
             <div className={styles.actions}>
-                <button className={styles.addTaskBtn} onClick={openAddTaskModal}>
+                <button className={styles.addTaskBtn} onClick={() => {
+                    openAddTaskModal();
+                    if (window.innerWidth <= 768 && closeSidebar) closeSidebar();
+                }}>
                     <span className={styles.addIcon}><FaPlus /></span>
                     Add Task
                 </button>
@@ -196,7 +206,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                         <li
                             key={item.id}
                             className={`${styles.navItem} ${activeTab === item.id ? styles.active : ''}`}
-                            onClick={() => setActiveTab(item.id)}
+                            onClick={() => handleTabClick(item.id)}
                         >
                             <span className={styles.icon}>{item.icon}</span>
                             <span className={styles.label}>{item.label}</span>
@@ -223,7 +233,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                                 key={project.id}
                                 project={project}
                                 activeTab={activeTab}
-                                setActiveTab={setActiveTab}
+                                setActiveTab={handleTabClick}
                                 onDeleteProject={setProjectToDelete}
                             />
                         ))}
@@ -252,7 +262,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                 <AddProjectModal
                     onClose={() => setShowProjectModal(false)}
                     onProjectCreated={(newId) => {
-                        setActiveTab(newId);
+                        handleTabClick(newId);
                     }}
                 />
             )}

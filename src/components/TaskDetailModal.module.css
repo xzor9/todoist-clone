@@ -99,7 +99,7 @@
 
 .titleInput {
     background: transparent;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 8px;
     color: var(--text-primary);
@@ -133,7 +133,7 @@
 
 .descriptionInput {
     background: transparent;
-    border: 1px solid transparent;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 8px;
     color: var(--text-primary);
@@ -227,8 +227,44 @@
     color: var(--text-secondary);
 }
 
-.projectColor {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .modal {
+        width: 90%;
+        height: auto;
+        max-height: 85vh;
+        max-width: 450px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .contentWrapper {
+        flex-direction: column;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .mainContent {
+        overflow-y: visible;
+        padding: 1rem;
+        flex: none;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        padding: 1rem;
+        flex: none;
+    }
+
+    .header {
+        padding: 0.75rem 1rem;
+    }
+
+    .titleInput {
+        font-size: 1.2rem;
+    }
 }
