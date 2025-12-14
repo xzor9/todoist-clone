@@ -79,15 +79,15 @@ export default function TaskList({ activeTab, onTaskClick }) {
         return null;
     };
 
-    if (loading) {
-        return <div style={{ padding: '2rem', color: 'var(--text-secondary)' }}>Loading tasks...</div>;
-    }
-
     const [showCompleted, setShowCompleted] = useState(false);
 
     // Separating active and completed tasks
     const activeTasks = React.useMemo(() => filteredTasks.filter(t => !t.isCompleted), [filteredTasks]);
     const completedTasks = React.useMemo(() => filteredTasks.filter(t => t.isCompleted), [filteredTasks]);
+
+    if (loading) {
+        return <div style={{ padding: '2rem', color: 'var(--text-secondary)' }}>Loading tasks...</div>;
+    }
 
     return (
         <div>
