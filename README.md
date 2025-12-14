@@ -1,12 +1,13 @@
-# React Todoist Clone
+# Inertie
 
-A simplified clone of Todoist built with React, Vite, and Firebase.
+**Inertie** is a modern productivity application designed to help you maintain momentum. Built with React, Vite, and Firebase.
 
 ## Features
-- **Authentication**: Sign up and login with Firebase Auth.
-- **Task Management**: Create, read, update, and delete tasks.
-- **Project Organization**: Organize tasks into projects.
-- **Due Dates & Filtering**: View tasks by Inbox, Today, or Upcoming.
+- **Capture**: Quick add for tasks to get ideas out of your head.
+- **Organize**: Drag-and-drop tasks into custom projects.
+- **Recurring Work**: Robust support for daily, weekly, and monthly storage.
+- **Focus**: "Today" and "Upcoming" views to keep you on track.
+- **Mobile Ready**: Responsive design ready for mobile packaging with Capacitor.
 
 ## Setup
 
@@ -36,3 +37,5 @@ To build for production:
 npm run build
 ```
 
+## deployment
+See `Inertie_Master_Plan.md` for launch strategies, mobile deployment, and monetization plans.
