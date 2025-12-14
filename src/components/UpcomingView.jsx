@@ -152,7 +152,7 @@ const MobileAddTaskModal = ({ onClose, defaultDate }) => {
         }} onClick={onClose}>
             <div style={{
                 width: '100%',
-                backgroundColor: 'var(--bg-primary)',
+                backgroundColor: 'var(--bg-color)',
                 padding: '1rem',
                 borderTopLeftRadius: '16px',
                 borderTopRightRadius: '16px',
@@ -257,18 +257,22 @@ export default function UpcomingView({ onTaskClick }) {
         }
     };
 
-    const handleRescheduleOverdue = async () => {
-        const todayStr = format(startOfToday(), 'yyyy-MM-dd');
+    const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+    const [rescheduleTargetDate, setRescheduleTargetDate] = useState(format(startOfToday(), 'yyyy-MM-dd'));
 
-        // Batch update is ideal, but for now loop
-        // Warning: This could be many writes.
-        const confirm = window.confirm(`Reschedule ${overdueTasks.length} overdue tasks to Today?`);
-        if (!confirm) return;
+    const handleRescheduleClick = () => {
+        setShowRescheduleModal(true);
+    };
 
-        // Using Promise.all for parallelism
+    const confirmReschedule = async () => {
+        if (!rescheduleTargetDate) return;
+
+        // Batch update
         await Promise.all(overdueTasks.map(task =>
-            updateTaskDate(task.id, todayStr, task.isRecurring, task.recurrence)
+            updateTaskDate(task.id, rescheduleTargetDate, task.isRecurring, task.recurrence)
         ));
+
+        setShowRescheduleModal(false);
     };
 
     const getDayHeader = (date, idx) => {
@@ -278,13 +282,29 @@ export default function UpcomingView({ onTaskClick }) {
         return <div className={styles.dayHeader}>{format(date, 'EEEE · MMM d')}</div>;
     };
 
+    const [showJumpToDateModal, setShowJumpToDateModal] = useState(false);
+    const [jumpTargetDate, setJumpTargetDate] = useState(format(startOfToday(), 'yyyy-MM-dd'));
+
+    const handleMonthClick = () => {
+        setJumpTargetDate(format(startDate, 'yyyy-MM-dd'));
+        setShowJumpToDateModal(true);
+    };
+
+    const confirmJumpToDate = () => {
+        if (!jumpTargetDate) return;
+        const date = parseISO(jumpTargetDate);
+        setStartDate(date);
+        scrollToDate(date);
+        setShowJumpToDateModal(false);
+    };
+
     if (loading) return <div>Loading...</div>;
 
     return (
         <div className={styles.container}>
             {/* Header / Controls */}
             <div className={styles.header}>
-                <div className={styles.monthTitle}>
+                <div className={styles.monthTitle} onClick={handleMonthClick}>
                     {format(startDate, 'MMMM yyyy')} <FaChevronDown size={12} style={{ opacity: 0.5 }} />
                 </div>
                 <div className={styles.controls}>
@@ -316,7 +336,7 @@ export default function UpcomingView({ onTaskClick }) {
                         tasks={overdueTasks}
                         getProjectDetails={getProjectDetails}
                         onTaskClick={onTaskClick}
-                        onReschedule={handleRescheduleOverdue}
+                        onReschedule={handleRescheduleClick}
                     />
                 )}
 
@@ -370,6 +390,138 @@ export default function UpcomingView({ onTaskClick }) {
                     onClose={() => setShowAddTask(false)}
                     defaultDate={format(startOfToday(), 'yyyy-MM-dd')}
                 />
+            )}
+
+            {/* Reschedule Modal */}
+            {showRescheduleModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    zIndex: 1100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }} onClick={() => setShowRescheduleModal(false)}>
+                    <div style={{
+                        backgroundColor: 'var(--bg-color)',
+                        padding: '1.5rem',
+                        borderRadius: '8px',
+                        width: '90%',
+                        maxWidth: '350px',
+                        boxShadow: 'var(--shadow-lg)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Reschedule Overdue</h3>
+                        <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                            Move {overdueTasks.length} tasks to:
+                        </p>
+                        <input
+                            type="date"
+                            value={rescheduleTargetDate}
+                            onChange={(e) => setRescheduleTargetDate(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                borderRadius: '4px',
+                                border: '1px solid var(--border-color)',
+                                marginBottom: '1.5rem',
+                                fontSize: '1rem'
+                            }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                            <button
+                                onClick={() => setShowRescheduleModal(false)}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '4px',
+                                    border: '1px solid var(--border-color)',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-primary)'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmReschedule}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    background: 'var(--primary-color)',
+                                    color: 'white',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Jump To Date Modal */}
+            {showJumpToDateModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    zIndex: 1100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }} onClick={() => setShowJumpToDateModal(false)}>
+                    <div style={{
+                        backgroundColor: 'var(--bg-color)',
+                        padding: '1.5rem',
+                        borderRadius: '8px',
+                        width: '90%',
+                        maxWidth: '350px',
+                        boxShadow: 'var(--shadow-lg)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Go to Date</h3>
+                        <input
+                            type="date"
+                            value={jumpTargetDate}
+                            onChange={(e) => setJumpTargetDate(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                borderRadius: '4px',
+                                border: '1px solid var(--border-color)',
+                                marginBottom: '1.5rem',
+                                fontSize: '1rem'
+                            }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                            <button
+                                onClick={() => setShowJumpToDateModal(false)}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '4px',
+                                    border: '1px solid var(--border-color)',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-primary)'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmJumpToDate}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    background: 'var(--primary-color)',
+                                    color: 'white',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Go
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
