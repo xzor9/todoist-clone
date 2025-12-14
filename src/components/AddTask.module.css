@@ -186,8 +186,19 @@
     border-radius: 4px;
     font-size: 0.85rem;
     color: var(--text-primary);
-    background-color: transparent;
+    background-color: var(--bg-color);
     max-width: 150px;
+    cursor: pointer;
+}
+
+.projectSelect option {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+}
+
+/* Ensure browser standard dropdowns know we are in dark mode if app is */
+:global(body.dark) .projectSelect {
+    color-scheme: dark;
 }
 
 .recurrenceOptions {
