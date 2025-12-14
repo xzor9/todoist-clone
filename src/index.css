@@ -85,3 +85,12 @@ textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-primary);
 }
+
+@media screen and (max-width: 768px) {
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
