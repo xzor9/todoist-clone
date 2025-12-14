@@ -201,7 +201,29 @@ export default function UpcomingView({ onTaskClick }) {
     };
 
     // Calculate Dates
-    const daysToRender = isMobile ? 14 : 7;
+    // Adaptive days render based on screen width
+    const getDaysToRender = () => {
+        if (typeof window === 'undefined') return 7;
+        const width = window.innerWidth;
+        if (width <= 768) return 14; // Mobile vertical scroll needs simpler
+        if (width > 2400) return 21; // Massive screens
+        if (width > 1600) return 14;
+        if (width > 1200) return 10;
+        return 7;
+    };
+
+    // We already have 'isMobile', but let's just make daysToRender stateful or derived from width state?
+    // We only track 'isMobile' state currently. Let's add 'daysToRender' state.
+    const [daysToRender, setDaysToRender] = useState(getDaysToRender());
+
+    useEffect(() => {
+        const handleResizeDays = () => {
+            setDaysToRender(getDaysToRender());
+        };
+        window.addEventListener('resize', handleResizeDays);
+        return () => window.removeEventListener('resize', handleResizeDays);
+    }, []);
+
     const days = useMemo(() => {
         return Array.from({ length: daysToRender }).map((_, i) => addDays(startDate, i));
     }, [startDate, daysToRender]);
