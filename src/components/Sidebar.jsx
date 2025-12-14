@@ -9,11 +9,12 @@ import EmojiPicker from 'emoji-picker-react';
 import { updateProjectIcon, deleteProject } from '../services/todo';
 import { useProjects } from '../contexts/projectHooks';
 import { useTasks } from '../contexts/taskHooks';
+import { isToday, parseISO } from 'date-fns';
 
 import ConfirmationModal from './ConfirmationModal';
 
 // Internal Droppable Component for Project Items
-function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProject }) {
+function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProject, count }) {
     const { setNodeRef, isOver } = useDroppable({
         id: `project-${project.id}`,
         data: { type: 'project', projectId: project.id }
@@ -88,6 +89,11 @@ function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProjec
                 <span className={styles.label} style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {project.name}
                 </span>
+                {count > 0 && (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginLeft: '8px' }}>
+                        ({count})
+                    </span>
+                )}
             </div>
 
             <button
@@ -141,10 +147,11 @@ function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProjec
     );
 }
 
+
 export default function Sidebar({ activeTab, setActiveTab, closeSidebar }) {
     const { currentUser, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
-    const { openAddTaskModal } = useTasks();
+    const { openAddTaskModal, tasks } = useTasks();
     const { projects } = useProjects();
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState(null);
@@ -202,16 +209,30 @@ export default function Sidebar({ activeTab, setActiveTab, closeSidebar }) {
 
             <nav className={styles.nav}>
                 <ul>
-                    {navItems.map(item => (
-                        <li
-                            key={item.id}
-                            className={`${styles.navItem} ${activeTab === item.id ? styles.active : ''}`}
-                            onClick={() => handleTabClick(item.id)}
-                        >
-                            <span className={styles.icon}>{item.icon}</span>
-                            <span className={styles.label}>{item.label}</span>
-                        </li>
-                    ))}
+                    {navItems.map(item => {
+                        let count = 0;
+                        if (item.id === 'inbox') {
+                            count = tasks.filter(t => !t.isCompleted && !t.projectId).length;
+                        } else if (item.id === 'today') {
+                            count = tasks.filter(t => !t.isCompleted && t.dueDate && isToday(parseISO(t.dueDate))).length;
+                        }
+
+                        return (
+                            <li
+                                key={item.id}
+                                className={`${styles.navItem} ${activeTab === item.id ? styles.active : ''}`}
+                                onClick={() => handleTabClick(item.id)}
+                            >
+                                <span className={styles.icon}>{item.icon}</span>
+                                <span className={styles.label}>{item.label}</span>
+                                {count > 0 && (
+                                    <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                        ({count})
+                                    </span>
+                                )}
+                            </li>
+                        );
+                    })}
                 </ul>
 
                 <div className={styles.projectsSection}>
@@ -228,15 +249,19 @@ export default function Sidebar({ activeTab, setActiveTab, closeSidebar }) {
                         </div>
                     </div>
                     <ul>
-                        {projects.map(project => (
-                            <DroppableProjectItem
-                                key={project.id}
-                                project={project}
-                                activeTab={activeTab}
-                                setActiveTab={handleTabClick}
-                                onDeleteProject={setProjectToDelete}
-                            />
-                        ))}
+                        {projects.map(project => {
+                            const count = tasks.filter(t => !t.isCompleted && t.projectId === project.id).length;
+                            return (
+                                <DroppableProjectItem
+                                    key={project.id}
+                                    project={project}
+                                    activeTab={activeTab}
+                                    setActiveTab={handleTabClick}
+                                    onDeleteProject={setProjectToDelete}
+                                    count={count}
+                                />
+                            );
+                        })}
                     </ul>
                 </div>
             </nav>
