@@ -19,7 +19,7 @@ export default function Login() {
     return (
         <div className={styles.container}>
             <div className={styles.card}>
-                <h1 className={styles.title}>Todoist Clone</h1>
+                <h1 className={styles.title}>Inertie</h1>
                 <p className={styles.subtitle}>Organize your work and life.</p>
 
                 {error && <div className={styles.error}>{error}</div>}

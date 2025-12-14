@@ -95,7 +95,7 @@ export default function MainLayout({ children, activeTab, setActiveTab }) {
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={styles.menuBtn}>
                         <FaBars />
                     </button>
-                    <span className={styles.mobileTitle}>Todoist Clone</span>
+                    <span className={styles.mobileTitle}>Inertie</span>
                 </div>
 
                 {/* Sidebar Overlay for Mobile */}
