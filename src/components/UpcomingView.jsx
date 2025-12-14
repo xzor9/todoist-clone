@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
     format,
     addDays,
@@ -8,131 +8,187 @@ import {
     parseISO,
     startOfToday,
     isToday,
-    isTomorrow
+    isTomorrow,
+    isBefore,
+    differenceInCalendarDays
 } from 'date-fns';
-import { FaChevronLeft, FaChevronRight, FaPlus, FaRegCircle, FaCheckCircle, FaChevronDown } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaPlus, FaCheck, FaChevronDown, FaChevronUp, FaCalendarAlt, FaInbox, FaTimes } from 'react-icons/fa';
 import { useTasks } from '../contexts/taskHooks';
-import { toggleTaskCompletion } from '../services/todo';
+import { toggleTaskCompletion, updateTaskDate } from '../services/todo';
 import { subscribeToProjects } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './UpcomingView.module.css';
 import AddTask from './AddTask';
 
-const WeekTaskCard = ({ task, projectName, projectColor, onTaskClick }) => {
+const TaskItem = ({ task, projectName, projectColor, onTaskClick }) => {
     const handleToggle = (e) => {
         e.stopPropagation();
         toggleTaskCompletion(task.id, task.isCompleted);
     };
 
+    const isOverdue = task.dueDate && isBefore(parseISO(task.dueDate), startOfToday());
+    const dueDateLabel = task.dueDate ? format(parseISO(task.dueDate), 'MMM d') : '';
+
     return (
-        <div className={styles.taskCard}>
+        <div className={styles.taskItem} onClick={() => onTaskClick && onTaskClick(task.id)}>
+            <div
+                className={styles.checkbox}
+                onClick={handleToggle}
+                style={{
+                    borderColor: task.isCompleted ? 'var(--primary-color)' : 'var(--text-secondary)',
+                    backgroundColor: task.isCompleted ? 'var(--primary-color)' : 'transparent',
+                }}
+            >
+                {task.isCompleted && <FaCheck color="white" size={10} />}
+            </div>
             <div className={styles.taskContent}>
-                <div
-                    className={styles.checkbox}
-                    onClick={handleToggle}
-                    style={{
-                        borderColor: task.isCompleted ? 'var(--primary-color)' : 'var(--text-secondary)',
-                        backgroundColor: task.isCompleted ? 'var(--primary-color)' : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
-                    {task.isCompleted && <FaCheckCircle color="white" size={12} />}
+                <div className={styles.taskText} style={{ textDecoration: task.isCompleted ? 'line-through' : 'none', color: task.isCompleted ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
+                    {task.content}
                 </div>
-                <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => onTaskClick && onTaskClick(task.id)}>
-                    <div className={styles.taskText} style={{ textDecoration: task.isCompleted ? 'line-through' : 'none', color: task.isCompleted ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
-                        {task.content}
-                    </div>
-                    <div className={styles.taskMeta}>
-                        {task.projectId && (
-                            <span className={styles.projectLabel} title={projectName}>
-                                <span style={{ width: 8, height: 8, borderRadius: '50%', background: projectColor || '#808080' }}></span>
-                                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
-                                    #{projectName || 'Unknown'}
-                                </span>
-                            </span>
-                        )}
-                        {task.recurrence &&
-                            <span className={styles.recurrenceTag}>
-                                🔄
-                            </span>
-                        }
-                    </div>
+                <div className={styles.taskMeta}>
+                    {isOverdue && !task.isCompleted && (
+                        <span className={styles.overdueDate}>
+                            <FaCalendarAlt size={10} style={{ marginRight: 4 }} />
+                            {dueDateLabel}
+                        </span>
+                    )}
+
+                    {projectName && (
+                        <span className={styles.projectLabel}>
+                            <span style={{ color: projectColor || '#808080' }}>#</span>
+                            {projectName}
+                        </span>
+                    )}
+
+                    {task.recurrence &&
+                        <span title="Recurring">
+                            🔄
+                        </span>
+                    }
                 </div>
             </div>
         </div>
     );
 };
 
-const DayColumn = ({ day, dayTasks, getProjectDetails, getDayHeader, onTaskClick }) => {
-    const [showCompleted, setShowCompleted] = useState(false);
-
-    // Sort logic could go here, but default is usually fine
-    const activeTasks = dayTasks.filter(t => !t.isCompleted);
-    const completedTasks = dayTasks.filter(t => t.isCompleted);
+const CalendarStrip = ({ startDate, onDateClick, weeksToShow = 2, selectedDate }) => {
+    const days = useMemo(() => {
+        // Show 2 weeks starting from today or start date
+        // Mobile UX: "Today" is usually the anchor.
+        return Array.from({ length: 7 * weeksToShow }).map((_, i) => addDays(startDate, i));
+    }, [startDate, weeksToShow]);
 
     return (
-        <div className={styles.dayColumn}>
-            <div className={styles.dayHeader}>
-                {getDayHeader(day)}
-                <span className={styles.taskCount}>{dayTasks.length}</span>
-            </div>
+        <div className={styles.calendarStrip}>
+            {days.map(day => {
+                const isCurrent = isSameDay(day, new Date());
+                const isSelected = selectedDate && isSameDay(day, selectedDate);
 
-            {activeTasks.map(task => {
-                const { name, color } = getProjectDetails(task.projectId);
                 return (
-                    <WeekTaskCard
-                        key={task.id}
-                        task={task}
-                        projectName={name}
-                        projectColor={color}
-                        onTaskClick={onTaskClick}
-                    />
+                    <div
+                        key={day.toISOString()}
+                        className={`${styles.calendarDay} ${isCurrent ? styles.active : ''} ${isSelected ? styles.selected : ''}`}
+                        onClick={() => onDateClick && onDateClick(day)}
+                    >
+                        <span className={styles.calendarDayName}>{format(day, 'E')[0]}</span>
+                        <span className={styles.calendarDayNumber}>{format(day, 'd')}</span>
+                    </div>
                 );
             })}
+        </div>
+    );
+};
 
-            {completedTasks.length > 0 && (
-                <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
-                    <button
-                        onClick={() => setShowCompleted(!showCompleted)}
-                        className={styles.addTaskBtn}
-                        style={{ opacity: 0.7, fontSize: '0.8rem', width: '100%' }}
-                    >
-                        {showCompleted ? <FaChevronDown /> : <FaChevronRight />}
-                        completed {completedTasks.length}
+const OverdueSection = ({ tasks, getProjectDetails, onTaskClick, onReschedule }) => {
+    const [isCollapsed, setIsCollapsed] = useState(false);
+
+    if (!tasks || tasks.length === 0) return null;
+
+    return (
+        <div className={styles.overdueSection}>
+            <div className={styles.overdueHeader} onClick={() => setIsCollapsed(!isCollapsed)}>
+                <div className={styles.overdueTitle}>
+                    Overdue
+                    <span className={styles.taskCount}>• {tasks.length}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <button className={styles.rescheduleBtn} onClick={(e) => { e.stopPropagation(); onReschedule(); }}>
+                        Reschedule
                     </button>
+                    {isCollapsed ? <FaChevronDown size={12} /> : <FaChevronUp size={12} />}
+                </div>
+            </div>
 
-                    {showCompleted && completedTasks.map(task => {
+            {!isCollapsed && (
+                <div className={styles.taskList}>
+                    {tasks.map(task => {
                         const { name, color } = getProjectDetails(task.projectId);
                         return (
-                            <div key={task.id} style={{ opacity: 0.6 }}>
-                                <WeekTaskCard
-                                    task={task}
-                                    projectName={name}
-                                    projectColor={color}
-                                    onTaskClick={onTaskClick}
-                                />
-                            </div>
+                            <TaskItem
+                                key={task.id}
+                                task={task}
+                                projectName={name}
+                                projectColor={color}
+                                onTaskClick={onTaskClick}
+                            />
                         );
                     })}
                 </div>
             )}
-
-            <div className={styles.addTaskWrapper}>
-                <AddTask defaultDate={format(day, 'yyyy-MM-dd')} isCompact={true} />
-            </div>
         </div>
     );
 };
+
+// Simple Modal for Mobile Task Add if needed, or re-use existing
+const MobileAddTaskModal = ({ onClose, defaultDate }) => {
+    return (
+        <div style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'flex-end', // Bottom sheet style
+        }} onClick={onClose}>
+            <div style={{
+                width: '100%',
+                backgroundColor: 'var(--bg-primary)',
+                padding: '1rem',
+                borderTopLeftRadius: '16px',
+                borderTopRightRadius: '16px',
+                maxHeight: '80vh',
+                overflowY: 'auto'
+            }} onClick={e => e.stopPropagation()}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3>Add Task</h3>
+                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-primary)' }}>
+                        <FaTimes size={20} />
+                    </button>
+                </div>
+                <AddTask defaultDate={defaultDate} onClose={onClose} defaultOpen={true} />
+            </div>
+        </div>
+    )
+}
 
 export default function UpcomingView({ onTaskClick }) {
     const { tasks, loading } = useTasks();
     const { currentUser } = useAuth();
     const [startDate, setStartDate] = useState(startOfToday());
     const [projects, setProjects] = useState([]);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [showAddTask, setShowAddTask] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(null); // For scrolling highlighting
 
-    React.useEffect(() => {
+    const dateRefs = useRef({});
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
         if (currentUser) {
             const unsubscribe = subscribeToProjects(currentUser.uid, setProjects);
             return unsubscribe;
@@ -144,40 +200,92 @@ export default function UpcomingView({ onTaskClick }) {
         return project ? { name: project.name, color: project.color } : { name: 'Inbox', color: '#808080' };
     };
 
-    // Generate 7 days starting from startDate
+    // Calculate Dates
+    const daysToRender = isMobile ? 14 : 7;
     const days = useMemo(() => {
-        return Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
-    }, [startDate]);
+        return Array.from({ length: daysToRender }).map((_, i) => addDays(startDate, i));
+    }, [startDate, daysToRender]);
 
-    const tasksByDate = useMemo(() => {
-        const map = {};
+    // Group Tasks
+    const { overdueTasks, tasksByDate } = useMemo(() => {
+        const overdue = [];
+        const byDate = {};
+
+        const today = startOfToday();
+
         days.forEach(day => {
-            const dayKey = format(day, 'yyyy-MM-dd');
-            map[dayKey] = tasks.filter(task => {
-                if (!task.dueDate) return false;
-                return isSameDay(parseISO(task.dueDate), day);
-            });
+            byDate[format(day, 'yyyy-MM-dd')] = [];
         });
-        return map;
+
+        tasks.forEach(task => {
+            if (!task.dueDate) return;
+            const due = parseISO(task.dueDate);
+
+            if (!task.isCompleted && isBefore(due, today)) {
+                overdue.push(task);
+            } else {
+                const dayKey = format(due, 'yyyy-MM-dd');
+                if (byDate[dayKey]) {
+                    byDate[dayKey].push(task);
+                }
+            }
+        });
+
+        return { overdueTasks: overdue, tasksByDate: byDate };
     }, [tasks, days]);
 
     const handlePrevWeek = () => setStartDate(d => subDays(d, 7));
     const handleNextWeek = () => setStartDate(d => addDays(d, 7));
-    const handleToday = () => setStartDate(startOfToday());
+    const handleToday = () => {
+        const today = startOfToday();
+        setStartDate(today);
+        scrollToDate(today);
+    };
 
-    const getDayHeader = (date) => {
-        if (isToday(date)) return `Today · ${format(date, 'MMM d')}`;
-        if (isTomorrow(date)) return `Tomorrow · ${format(date, 'MMM d')}`;
-        return format(date, 'EEEE · MMM d');
+    const scrollToDate = (date) => {
+        const key = format(date, 'yyyy-MM-dd');
+        setSelectedDate(date);
+
+        if (dateRefs.current[key]) {
+            dateRefs.current[key].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            // If strictly not in view (e.g. date out of range), maybe update start date?
+            // tailored for "Upcoming" which usually shows near future.
+            // If date < startDate or date > startDate + 14, jump?
+            setStartDate(date);
+            // setTimeout to scroll after render?
+        }
+    };
+
+    const handleRescheduleOverdue = async () => {
+        const todayStr = format(startOfToday(), 'yyyy-MM-dd');
+
+        // Batch update is ideal, but for now loop
+        // Warning: This could be many writes.
+        const confirm = window.confirm(`Reschedule ${overdueTasks.length} overdue tasks to Today?`);
+        if (!confirm) return;
+
+        // Using Promise.all for parallelism
+        await Promise.all(overdueTasks.map(task =>
+            updateTaskDate(task.id, todayStr, task.isRecurring, task.recurrence)
+        ));
+    };
+
+    const getDayHeader = (date, idx) => {
+        const isFirst = idx === 0;
+        if (isToday(date)) return <div className={`${styles.dayHeader} ${isFirst ? styles.firstDay : ''}`}>Today · {format(date, 'MMM d')}</div>;
+        if (isTomorrow(date)) return <div className={styles.dayHeader}>Tomorrow · {format(date, 'MMM d')}</div>;
+        return <div className={styles.dayHeader}>{format(date, 'EEEE · MMM d')}</div>;
     };
 
     if (loading) return <div>Loading...</div>;
 
     return (
         <div className={styles.container}>
+            {/* Header / Controls */}
             <div className={styles.header}>
                 <div className={styles.monthTitle}>
-                    {format(days[0], 'MMMM yyyy')}
+                    {format(startDate, 'MMMM yyyy')} <FaChevronDown size={12} style={{ opacity: 0.5 }} />
                 </div>
                 <div className={styles.controls}>
                     <button className={styles.controlButton} onClick={handlePrevWeek} title="Previous Week">
@@ -192,23 +300,77 @@ export default function UpcomingView({ onTaskClick }) {
                 </div>
             </div>
 
-            <div className={styles.grid}>
-                {days.map(day => {
-                    const dateKey = format(day, 'yyyy-MM-dd');
-                    const dayTasks = tasksByDate[dateKey] || [];
+            {/* Calendar Strip (Mobile) */}
+            <CalendarStrip
+                startDate={startDate}
+                weeksToShow={2}
+                onDateClick={scrollToDate}
+                selectedDate={selectedDate}
+            />
 
-                    return (
-                        <DayColumn
-                            key={dateKey}
-                            day={day}
-                            dayTasks={dayTasks}
-                            getProjectDetails={getProjectDetails}
-                            getDayHeader={getDayHeader}
-                            onTaskClick={onTaskClick}
-                        />
-                    );
-                })}
+            {/* Main Content */}
+            <div className={styles.contentArea}>
+                {/* Overdue Section */}
+                {overdueTasks.length > 0 && (
+                    <OverdueSection
+                        tasks={overdueTasks}
+                        getProjectDetails={getProjectDetails}
+                        onTaskClick={onTaskClick}
+                        onReschedule={handleRescheduleOverdue}
+                    />
+                )}
+
+                {/* Days Grid/List */}
+                <div className={styles.grid}>
+                    {days.map((day, idx) => {
+                        const dateKey = format(day, 'yyyy-MM-dd');
+                        const dayTasks = tasksByDate[dateKey] || [];
+                        const activeTasks = dayTasks.filter(t => !t.isCompleted);
+
+                        return (
+                            <div
+                                key={dateKey}
+                                className={styles.dayColumn}
+                                ref={el => dateRefs.current[dateKey] = el}
+                            >
+                                {getDayHeader(day, idx)}
+
+                                <div className={styles.taskList}>
+                                    {activeTasks.map(task => {
+                                        const { name, color } = getProjectDetails(task.projectId);
+                                        return (
+                                            <TaskItem
+                                                key={task.id}
+                                                task={task}
+                                                projectName={name}
+                                                projectColor={color}
+                                                onTaskClick={onTaskClick}
+                                            />
+                                        );
+                                    })}
+                                </div>
+
+                                <AddTask defaultDate={format(day, 'yyyy-MM-dd')} isCompact={true} />
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
+
+            {/* Mobile Floating Add Button */}
+            {isMobile && (
+                <div className={styles.floatingAddBtn} onClick={() => setShowAddTask(true)}>
+                    <FaPlus />
+                </div>
+            )}
+
+            {/* Mobile Add Task Modal */}
+            {isMobile && showAddTask && (
+                <MobileAddTaskModal
+                    onClose={() => setShowAddTask(false)}
+                    defaultDate={format(startOfToday(), 'yyyy-MM-dd')}
+                />
+            )}
         </div>
     );
 }

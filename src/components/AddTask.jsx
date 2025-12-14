@@ -6,8 +6,8 @@ import { FaPlus, FaInbox, FaHashtag } from 'react-icons/fa';
 import { useProjects } from '../contexts/projectHooks';
 import AddProjectModal from './AddProjectModal';
 
-export default function AddTask({ defaultDate, isModal, onClose, isCompact }) {
-    const [isOpen, setIsOpen] = useState(isModal || false);
+export default function AddTask({ defaultDate, isModal, onClose, isCompact, defaultOpen }) {
+    const [isOpen, setIsOpen] = useState(isModal || defaultOpen || false);
     const [content, setContent] = useState('');
     const [description, setDescription] = useState('');
     const [dueDate, setDueDate] = useState(defaultDate || '');
@@ -50,8 +50,8 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact }) {
             setContent('');
             setDescription('');
             resetForm();
-            if (isModal && onClose) onClose();
-            if (!isModal) setIsOpen(false); // Close inline form on submit? Usually yes for Todoist simplicity
+            if (onClose) onClose();
+            else setIsOpen(false);
         } catch (error) {
             console.error("Failed to add task", error);
         }
@@ -65,7 +65,7 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact }) {
     };
 
     const handleCancel = () => {
-        if (isModal && onClose) {
+        if (onClose) {
             onClose();
         } else {
             setIsOpen(false);

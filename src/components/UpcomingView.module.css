@@ -3,19 +3,27 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background-color: var(--bg-primary);
+    /* Ensure background is solid */
 }
 
+/* Header - Desktop & Mobile shared base */
 .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 1rem 0;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
 }
 
 .monthTitle {
     font-size: 1.2rem;
     font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .controls {
@@ -32,41 +40,137 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 }
 
 .controlButton:hover {
-    background: var(--border-color);
+    background: var(--bg-hover);
 }
 
+/* Calendar Strip (Mobile Only mostly, but can be responsive) */
+.calendarStrip {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+
+.calendarDay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    border-radius: 8px;
+    gap: 0.5rem;
+}
+
+.calendarDayName {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.calendarDayNumber {
+    font-size: 1rem;
+    font-weight: 500;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.calendarDay.active .calendarDayNumber {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 700;
+}
+
+.calendarDay:hover .calendarDayNumber {
+    background-color: var(--bg-hover);
+}
+
+.calendarDay.active:hover .calendarDayNumber {
+    background-color: var(--primary-color);
+}
+
+/* Content Area - Scrollable */
+.contentArea {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 0.5rem;
+    /* Space for scrollbar */
+}
+
+/* Overdue Section */
+.overdueSection {
+    margin-bottom: 2rem;
+}
+
+.overdueHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+
+.overdueTitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rescheduleBtn {
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.rescheduleBtn:hover {
+    text-decoration: underline;
+}
+
+/* Main Grid/List Layout */
 .grid {
     display: flex;
-    gap: 1rem;
-    overflow-x: auto;
     height: 100%;
-    padding-bottom: 1rem;
 }
 
 .dayColumn {
-    min-width: 250px;
-    background: transparent;
-    border-right: 1px solid var(--border-color);
-    padding-right: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.dayColumn:last-child {
-    border-right: none;
-}
-
 .dayHeader {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 1.5rem 0 0.5rem 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.dayHeader.firstDay {
+    margin-top: 0;
 }
 
 .taskCount {
@@ -75,48 +179,85 @@
     font-weight: 400;
 }
 
-.taskCard {
-    background: var(--bg-sidebar); /* Slightly lighter/different in dark mode */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 0.75rem;
-    cursor: pointer;
-    transition: box-shadow 0.2s;
-    user-select: none;
+/* Task Item Styles (List look for mobile/vertical) */
+.taskList {
+    display: flex;
+    flex-direction: column;
 }
 
-.taskCard:hover {
-    box-shadow: var(--shadow-sm);
-    border-color: var(--text-secondary);
-}
-
-.taskContent {
+.taskItem {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 0.75rem;
+    cursor: pointer;
+    background: transparent;
+}
+
+.taskItem:last-child {
+    border-bottom: none;
+}
+
+.taskItem:hover {
+    background-color: var(--bg-hover);
+    /* Subtle hover effect */
+    border-radius: 5px;
+    /* Clean look on hover */
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
 }
 
 .checkbox {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border: 1px solid var(--text-secondary);
     border-radius: 50%;
     cursor: pointer;
     flex-shrink: 0;
     margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.checkbox:hover {
+    border-color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.taskContent {
+    flex: 1;
+    min-width: 0;
 }
 
 .taskText {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     line-height: 1.4;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
 }
 
 .taskMeta {
-    margin-top: 0.5rem;
     display: flex;
-    gap: 0.5rem;
-    font-size: 0.75rem;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
+.metaItem {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.overdueDate {
+    color: var(--date-overdue, #ff5c5c);
 }
 
 .projectLabel {
@@ -134,14 +275,138 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.2s;
+    margin-top: 0.5rem;
+    border-radius: 50%;
+    /* If just icon */
+    width: fit-content;
 }
 
-.dayColumn:hover .addTaskBtn {
-    opacity: 1;
+.floatingAddBtn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    font-size: 1.5rem;
+    z-index: 100;
 }
 
-.addTaskBtn:hover {
-    color: var(--primary-hover);
+/* DESKTOP STYLES (Default to existing Grid if width > 768px) */
+@media (min-width: 769px) {
+    .calendarStrip {
+        display: none;
+        /* Hide calendar strip on desktop */
+    }
+
+    .grid {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 1rem;
+        padding-bottom: 1rem;
+        align-items: flex-start;
+    }
+
+    .dayColumn {
+        min-width: 280px;
+        flex-shrink: 0;
+        border-right: 1px solid var(--border-color);
+        padding-right: 1rem;
+    }
+
+    .dayColumn:last-child {
+        border-right: none;
+    }
+
+    .dayHeader {
+        margin-top: 0;
+        /* Reset for grid */
+        border-bottom: none;
+    }
+
+    .overdueSection {
+        padding: 0 1rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+    }
+
+    .floatingAddBtn {
+        display: none;
+        /* Usually desktop has inline add buttons */
+    }
+
+    .taskItem {
+        /* On desktop grid, maybe keep the 'card' look? */
+        /* Or adopt the list look everywhere. The list look is cleaner. */
+        /* Let's stick to the list look but maybe boxed if desired. */
+        /* For now, list look is fine. */
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        background: var(--bg-sidebar);
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+        /* reset */
+    }
+
+    .taskItem:hover {
+        margin-left: 0;
+        margin-right: 0;
+        box-shadow: var(--shadow-sm);
+        border-color: var(--text-secondary);
+    }
+}
+
+/* MOBILE STYLES */
+@media (max-width: 768px) {
+    .header {
+        /* sticky header? */
+        /* padding: 0.5rem 1rem; */
+    }
+
+    .controls {
+        display: none;
+        /* Hide next/prev week buttons on mobile, rely on scroll/calendar strip */
+    }
+
+    .grid {
+        flex-direction: column;
+        height: auto;
+        /* Let it flow */
+    }
+
+    .dayColumn {
+        min-width: auto;
+        border-right: none;
+        padding: 0 0 1.5rem 0;
+        /* Spacing between days */
+    }
+
+    .contentArea {
+        padding: 0 1rem;
+        /* Add padding for mobile content */
+    }
+
+    /* Hide empty days if needed, or show all. */
+
+    .taskItem {
+        /* Pure list look on mobile */
+        border: none;
+        background: transparent;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 0;
+        border-radius: 0;
+    }
+
+    .taskItem:hover {
+        background: transparent;
+        /* No hover on touch really needed like desktop */
+    }
 }
