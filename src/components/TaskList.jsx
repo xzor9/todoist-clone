@@ -47,7 +47,15 @@ export default function TaskList({ activeTab, onTaskClick }) {
             }
 
             // Project Filters
-            return task.projectId === activeTab;
+            // Project Filters
+            if (task.projectId === activeTab) {
+                // Hide future recurring tasks from project view so they don't clutter the list immediately after completion
+                if (task.isRecurring && task.dueDate && parseISO(task.dueDate) > startOfToday()) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
         });
     }, [tasks, activeTab]);
 
