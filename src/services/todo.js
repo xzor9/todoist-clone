@@ -71,18 +71,20 @@ export async function toggleTaskCompletion(taskId, currentStatus) {
 
         const lowerRecurrence = task.recurrence.toLowerCase();
 
+        const anchorDate = task.recurrenceAnchor ? parseISO(task.recurrenceAnchor) : currentDueDate;
+
         if (lowerRecurrence.includes('day') || lowerRecurrence === 'daily') {
             const match = lowerRecurrence.match(/every (\d+) day/);
             const days = match ? parseInt(match[1]) : 1;
-            nextDate = addDays(currentDueDate, days);
+            nextDate = addDays(anchorDate, days);
         } else if (lowerRecurrence.includes('week') || lowerRecurrence === 'weekly') {
             const match = lowerRecurrence.match(/every (\d+) week/);
             const weeks = match ? parseInt(match[1]) : 1;
-            nextDate = addWeeks(currentDueDate, weeks);
+            nextDate = addWeeks(anchorDate, weeks);
         } else if (lowerRecurrence.includes('month') || lowerRecurrence === 'monthly') {
             const match = lowerRecurrence.match(/every (\d+) month/);
             const months = match ? parseInt(match[1]) : 1;
-            nextDate = addMonths(currentDueDate, months);
+            nextDate = addMonths(anchorDate, months);
         }
 
         if (nextDate) {
@@ -93,7 +95,10 @@ export async function toggleTaskCompletion(taskId, currentStatus) {
                 format(nextDate, 'yyyy-MM-dd'),
                 true,
                 task.recurrence,
-                task.projectId
+                task.projectId,
+                task.description || ""
+                // anchor is handled in addTask automatically as 'date' if not passed, 
+                // BUT for next task, the anchor should be the calculated nextDate to keep the chain.
             );
         }
     }
@@ -170,7 +175,7 @@ export async function deleteProject(projectId) {
 }
 
 // Updated addTask to include project info and description
-export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null, description = "") {
+export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null, description = "", recurrenceAnchor = null) {
     return addDoc(collection(db, COLLECTION_NAME), {
         userId,
         content,
@@ -180,6 +185,7 @@ export async function addTask(userId, content, date = null, isRecurring = false,
         dueDate: date,
         isRecurring: isRecurring,
         recurrence: isRecurring ? recurrence : null,
+        recurrenceAnchor: recurrenceAnchor || date, // Initialize anchor with date if not provided
         projectId: projectId,
         order: Date.now() // Simple default order: new tasks at bottom (timestamp is increasing)
     });
@@ -209,11 +215,15 @@ export async function updateTaskProject(taskId, projectId) {
     });
 }
 
-export async function updateTaskDate(taskId, date, isRecurring, recurrence) {
+export async function updateTaskDate(taskId, date, isRecurring, recurrence, recurrenceAnchor) {
     const taskRef = doc(db, COLLECTION_NAME, taskId);
-    return updateDoc(taskRef, {
+    const updates = {
         dueDate: date,
         isRecurring: isRecurring,
         recurrence: recurrence
-    });
+    };
+    if (recurrenceAnchor !== undefined) {
+        updates.recurrenceAnchor = recurrenceAnchor;
+    }
+    return updateDoc(taskRef, updates);
 }

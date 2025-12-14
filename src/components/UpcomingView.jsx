@@ -268,9 +268,15 @@ export default function UpcomingView({ onTaskClick }) {
         if (!rescheduleTargetDate) return;
 
         // Batch update
-        await Promise.all(overdueTasks.map(task =>
-            updateTaskDate(task.id, rescheduleTargetDate, task.isRecurring, task.recurrence)
-        ));
+        await Promise.all(overdueTasks.map(task => {
+            let anchor = undefined;
+            if (task.isRecurring) {
+                // Keep existing anchor if present, otherwise set it to the OLD due date (before reschedule)
+                // This ensures that if we reschedule from Dec 1 -> Dec 5, the anchor remains Dec 1.
+                anchor = task.recurrenceAnchor || task.dueDate;
+            }
+            return updateTaskDate(task.id, rescheduleTargetDate, task.isRecurring, task.recurrence, anchor);
+        }));
 
         setShowRescheduleModal(false);
     };
