@@ -37,5 +37,4 @@ To build for production:
 npm run build
 ```
 
-## deployment
-See `Inertie_Master_Plan.md` for launch strategies, mobile deployment, and monetization plans.
+
