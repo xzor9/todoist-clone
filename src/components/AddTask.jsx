@@ -14,6 +14,7 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
     const [isRecurring, setIsRecurring] = useState(false);
     const [recurrenceInterval, setRecurrenceInterval] = useState(1);
     const [recurrenceUnit, setRecurrenceUnit] = useState('Week');
+    const [error, setError] = useState('');
 
     // ... (Project state matches original)
     const { projects } = useProjects();
@@ -22,6 +23,8 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
 
     const { currentUser } = useAuth();
 
+    const MAX_CONTENT_LENGTH = 500;
+    const MAX_DESCRIPTION_LENGTH = 2000;
 
     // Force open if isModal
     useEffect(() => {
@@ -31,6 +34,17 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!content.trim()) return;
+        setError('');
+
+        if (content.length > MAX_CONTENT_LENGTH) {
+            setError(`Task content is too long. Max ${MAX_CONTENT_LENGTH} characters.`);
+            return;
+        }
+
+        if (description.length > MAX_DESCRIPTION_LENGTH) {
+            setError(`Description is too long. Max ${MAX_DESCRIPTION_LENGTH} characters.`);
+            return;
+        }
 
         try {
             const recurrenceString = isRecurring
@@ -54,6 +68,7 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
             else setIsOpen(false);
         } catch (error) {
             console.error("Failed to add task", error);
+            setError('Failed to add task. Please try again.');
         }
     };
 
@@ -91,6 +106,7 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
     const formContent = (
         <div className={containerClass} onClick={e => e.stopPropagation()}>
             <form onSubmit={handleSubmit} className={styles.form}>
+                {error && <div style={{ color: 'red', marginBottom: '10px', fontSize: '0.9rem' }}>{error}</div>}
                 <input
                     autoFocus
                     className={styles.input}

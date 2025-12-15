@@ -14,6 +14,7 @@ export default function TaskItem({ task, onTaskClick }) {
     const [editContent, setEditContent] = useState(task.content);
     const { currentUser } = useAuth();
     const { projects } = useProjects();
+    const MAX_CONTENT_LENGTH = 500;
 
     const project = projects.find(p => p.id === task.projectId);
 
@@ -43,6 +44,10 @@ export default function TaskItem({ task, onTaskClick }) {
     };
 
     const handleSave = () => {
+        if (editContent.length > MAX_CONTENT_LENGTH) {
+            alert(`Content is too long. Max ${MAX_CONTENT_LENGTH} characters.`);
+            return;
+        }
         if (editContent.trim()) {
             updateTaskContent(task.id, editContent);
             setIsEditing(false);

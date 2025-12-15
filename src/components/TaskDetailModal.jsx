@@ -34,6 +34,9 @@ export default function TaskDetailModal({ taskId, onClose }) {
     const { projects } = useProjects();
     const [showProjectDropdown, setShowProjectDropdown] = useState(false);
 
+    const MAX_TITLE_LENGTH = 500;
+    const MAX_DESCRIPTION_LENGTH = 2000;
+
     useEffect(() => {
         async function fetchTask() {
             setLoading(true);
@@ -85,6 +88,11 @@ export default function TaskDetailModal({ taskId, onClose }) {
     };
 
     const handleTitleSave = async () => {
+        if (editTitle.length > MAX_TITLE_LENGTH) {
+            setError(`Title is too long. Max ${MAX_TITLE_LENGTH} characters.`);
+            return;
+        }
+        setError(null);
         if (editTitle.trim() !== task.content) {
             await updateTaskContent(taskId, editTitle);
             setTask(prev => ({ ...prev, content: editTitle }));
@@ -92,6 +100,11 @@ export default function TaskDetailModal({ taskId, onClose }) {
     };
 
     const handleDescriptionSave = async () => {
+        if (editDescription.length > MAX_DESCRIPTION_LENGTH) {
+            setError(`Description is too long. Max ${MAX_DESCRIPTION_LENGTH} characters.`);
+            return;
+        }
+        setError(null);
         if (editDescription !== (task.description || '')) {
             await updateTaskDescription(taskId, editDescription);
             setTask(prev => ({ ...prev, description: editDescription }));

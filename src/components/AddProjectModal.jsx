@@ -33,13 +33,22 @@ export default function AddProjectModal({ onClose, onProjectCreated }) {
     const [color, setColor] = useState(COLORS[11].value); // Default Blue
     const [icon, setIcon] = useState(null); // Emoji character
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [error, setError] = useState('');
 
     const { currentUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
+    const MAX_NAME_LENGTH = 100;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!name.trim()) return;
+        setError('');
+
+        if (name.length > MAX_NAME_LENGTH) {
+            setError(`Project name is too long. Max ${MAX_NAME_LENGTH} characters.`);
+            return;
+        }
 
         setIsLoading(true);
         try {
@@ -48,6 +57,7 @@ export default function AddProjectModal({ onClose, onProjectCreated }) {
             onClose();
         } catch (error) {
             console.error(error);
+            setError('Failed to add project.');
             setIsLoading(false);
         }
     };
@@ -56,6 +66,7 @@ export default function AddProjectModal({ onClose, onProjectCreated }) {
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
                 <h3 className={styles.title}>Add project</h3>
+                {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className={styles.field}>
                         <label className={styles.label}>Name</label>
