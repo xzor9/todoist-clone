@@ -13,6 +13,7 @@ import {
     getDoc
 } from 'firebase/firestore';
 import { addDays, addWeeks, addMonths, parseISO, format } from 'date-fns';
+import { validateTaskInput, validateProjectInput, MAX_DESCRIPTION_LENGTH } from '../utils/validation';
 
 const COLLECTION_NAME = 'tasks';
 
@@ -114,6 +115,7 @@ export async function deleteTask(taskId) {
 }
 
 export async function updateTaskContent(taskId, newContent) {
+    validateTaskInput(newContent);
     const taskRef = doc(db, COLLECTION_NAME, taskId);
     return updateDoc(taskRef, {
         content: newContent
@@ -153,6 +155,7 @@ export function subscribeToProjects(userId, callback) {
 }
 
 export async function addProject(userId, name, color, icon = null) {
+    validateProjectInput(name);
     return addDoc(collection(db, PROJECTS_COLLECTION), {
         userId,
         name,
@@ -176,6 +179,7 @@ export async function deleteProject(projectId) {
 
 // Updated addTask to include project info and description
 export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null, description = "", recurrenceAnchor = null) {
+    validateTaskInput(content, description);
     return addDoc(collection(db, COLLECTION_NAME), {
         userId,
         content,
@@ -202,6 +206,10 @@ export async function getTask(taskId) {
 }
 
 export async function updateTaskDescription(taskId, description) {
+    // Description can be empty, but check max length
+    if (description && description.length > MAX_DESCRIPTION_LENGTH) {
+        throw new Error(`Description too long (max ${MAX_DESCRIPTION_LENGTH} chars)`);
+    }
     const taskRef = doc(db, COLLECTION_NAME, taskId);
     return updateDoc(taskRef, {
         description: description
