@@ -17,14 +17,20 @@ export class ErrorBoundary extends React.Component {
 
     render() {
         if (this.state.hasError) {
+            const isDev = import.meta.env.DEV;
+
             return (
                 <div style={{ padding: '2rem', color: 'red' }}>
                     <h1>Something went wrong.</h1>
-                    <details style={{ whiteSpace: 'pre-wrap' }}>
-                        {this.state.error && this.state.error.toString()}
-                        <br />
-                        {this.state.errorInfo && this.state.errorInfo.componentStack}
-                    </details>
+                    {isDev ? (
+                        <details style={{ whiteSpace: 'pre-wrap' }}>
+                            {this.state.error && this.state.error.toString()}
+                            <br />
+                            {this.state.errorInfo && this.state.errorInfo.componentStack}
+                        </details>
+                    ) : (
+                        <p>We're sorry, but an unexpected error has occurred. Please try refreshing the page.</p>
+                    )}
                 </div>
             );
         }
