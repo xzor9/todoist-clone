@@ -34,18 +34,30 @@ export default function TaskItem({ task, onTaskClick }) {
     };
 
 
-    const handleToggle = () => {
-        toggleTaskCompletion(task.id, task.isCompleted);
+    const handleToggle = async () => {
+        try {
+            await toggleTaskCompletion(task.id, task.isCompleted);
+        } catch (error) {
+            console.error("Failed to toggle task:", error);
+        }
     };
 
-    const handleDelete = () => {
-        deleteTask(task.id);
+    const handleDelete = async () => {
+        try {
+            await deleteTask(task.id);
+        } catch (error) {
+            console.error("Failed to delete task:", error);
+        }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (editContent.trim()) {
-            updateTaskContent(task.id, editContent);
-            setIsEditing(false);
+            try {
+                await updateTaskContent(task.id, editContent);
+                setIsEditing(false);
+            } catch (error) {
+                console.error("Failed to update task content:", error);
+            }
         }
     };
 
