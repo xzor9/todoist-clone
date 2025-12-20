@@ -12,19 +12,28 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Helper to ensure userId cannot be changed during updates
+    function isUserIdUnchanged() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
     // TASKS Collection
     match /tasks/{taskId} {
       // Allow create if the new document's 'userId' matches the authenticated user
       allow create: if isOwner(request.resource.data.userId);
       
-      // Allow read/update/delete if the existing document's 'userId' matches the authenticated user
-      allow read, update, delete: if isOwner(resource.data.userId);
+      // Allow update if owner AND userId remains the same
+      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+
+      // Allow read/delete if owner
+      allow read, delete: if isOwner(resource.data.userId);
     }
 
     // PROJECTS Collection
     match /projects/{projectId} {
       allow create: if isOwner(request.resource.data.userId);
-      allow read, update, delete: if isOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+      allow read, delete: if isOwner(resource.data.userId);
     }
 
     // Default: Deny everything else
