@@ -38,7 +38,8 @@ export default function TaskList({ activeTab, onTaskClick }) {
 
             if (activeTab === 'today') {
                 if (!task.dueDate) return false;
-                return isToday(parseISO(task.dueDate));
+                // Include Today's tasks AND Overdue tasks
+                return parseISO(task.dueDate) <= startOfToday() || isToday(parseISO(task.dueDate));
             }
 
             if (activeTab === 'upcoming') {

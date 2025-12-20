@@ -214,7 +214,11 @@ export default function Sidebar({ activeTab, setActiveTab, closeSidebar }) {
                         if (item.id === 'inbox') {
                             count = tasks.filter(t => !t.isCompleted && !t.projectId).length;
                         } else if (item.id === 'today') {
-                            count = tasks.filter(t => !t.isCompleted && t.dueDate && isToday(parseISO(t.dueDate))).length;
+                            count = tasks.filter(t => {
+                                if (t.isCompleted || !t.dueDate) return false;
+                                const date = parseISO(t.dueDate);
+                                return isToday(date) || date < new Date(); // Today or Overdue
+                            }).length;
                         }
 
                         return (
