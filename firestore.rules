@@ -17,13 +17,48 @@ service cloud.firestore {
       return request.resource.data.userId == resource.data.userId;
     }
 
+    // --- Validation Helpers ---
+
+    // Task validation
+    function isValidTask() {
+      let data = request.resource.data;
+
+      // Required fields checks
+      let hasRequiredFields =
+        data.keys().hasAll(['userId', 'content', 'isCompleted', 'createdAt']) &&
+        data.content is string &&
+        data.isCompleted is bool;
+
+      // Content length check
+      let isContentValid = data.content.size() > 0 && data.content.size() <= 1000;
+
+      // Optional description check
+      let isDescriptionValid = !data.keys().hasAny(['description']) || (data.description is string && data.description.size() <= 5000);
+
+      // Optional project check
+      // We don't strictly enforce projectId existence in projects collection to avoid complex reads,
+      // but we ensure it's a string if present.
+      let isProjectValid = !data.keys().hasAny(['projectId']) || data.projectId == null || data.projectId is string;
+
+      // Optional dates
+      // dueDate, recurrenceAnchor should be timestamps or null?
+      // In code: dueDate: date (string YYYY-MM-DD) or null.
+      // Wait, code says `finalDate` is string "YYYY-MM-DD".
+      // Let's check existing data or code. `addTask` uses `dueDate: date` which is string.
+      // But `createdAt` is `serverTimestamp()`.
+
+      return hasRequiredFields && isContentValid && isDescriptionValid && isProjectValid;
+    }
+
     // TASKS Collection
     match /tasks/{taskId} {
-      // Allow create if the new document's 'userId' matches the authenticated user
-      allow create: if isOwner(request.resource.data.userId);
+      // Allow create if the new document's 'userId' matches the authenticated user AND valid data
+      allow create: if isOwner(request.resource.data.userId) && isValidTask();
       
-      // Allow update if owner AND userId remains the same
-      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+      // Allow update if owner AND userId remains the same AND valid data
+      // For updates, we should also check validity if we want strict schema.
+      // However, `request.resource.data` represents the *final* document state after update.
+      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged() && isValidTask();
 
       // Allow read/delete if owner
       allow read, delete: if isOwner(resource.data.userId);
