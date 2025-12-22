@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import confetti from 'canvas-confetti';
 import { toggleTaskCompletion, deleteTask, updateTaskContent } from '../services/todo';
 import { FaTrash, FaPen, FaCheck } from 'react-icons/fa';
 import styles from './TaskItem.module.css';
@@ -34,7 +35,20 @@ export default function TaskItem({ task, onTaskClick }) {
     };
 
 
-    const handleToggle = async () => {
+    const handleToggle = async (e) => {
+        if (!task.isCompleted && e) {
+            // Trigger confetti
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+            confetti({
+                origin: { x, y },
+                particleCount: 25,
+                spread: 40,
+                colors: ['#e15252', '#33a06f', '#3b8fc2', '#e9a140', '#9c54ce'] // Todoist-ish colors
+            });
+        }
         try {
             await toggleTaskCompletion(task.id, task.isCompleted);
         } catch (error) {
