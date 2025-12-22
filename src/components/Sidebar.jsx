@@ -21,7 +21,7 @@ function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProjec
     });
 
     const [showPicker, setShowPicker] = useState(false);
-    const [isHovered, setIsHovered] = useState(false);
+    const [_isHovered, setIsHovered] = useState(false);
     const pickerRef = useRef(null);
 
     // Close picker when clicking outside

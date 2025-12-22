@@ -10,12 +10,12 @@ import {
     FaRegClock,
     FaHashtag
 } from 'react-icons/fa';
-import { useAuth } from '../contexts/AuthContext';
+// import { useAuth } from '../contexts/AuthContext';
 import { useProjects } from '../contexts/projectHooks';
 import styles from './TaskDetailModal.module.css';
 
 export default function TaskDetailModal({ taskId, onClose }) {
-    const { currentUser } = useAuth();
+    // const { currentUser } = useAuth();
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

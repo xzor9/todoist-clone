@@ -3,14 +3,14 @@ import {
     format,
     addDays,
     subDays,
-    startOfWeek,
+    // startOfWeek,
     isSameDay,
     parseISO,
     startOfToday,
     isToday,
     isTomorrow,
     isBefore,
-    differenceInCalendarDays
+    // differenceInCalendarDays
 } from 'date-fns';
 import { FaChevronLeft, FaChevronRight, FaPlus, FaCheck, FaChevronDown, FaChevronUp, FaCalendarAlt, FaInbox, FaTimes } from 'react-icons/fa';
 import { useTasks } from '../contexts/taskHooks';
