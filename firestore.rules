@@ -2,41 +2,74 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper function to check if the user is accessing their own data
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Helper to ensure userId cannot be changed during updates
     function isUserIdUnchanged() {
       return request.resource.data.userId == resource.data.userId;
     }
 
+    // --- SCHEMA VALIDATION ---
+
+    function isValidTask(task) {
+      let requiredFields = ['userId', 'content', 'isCompleted', 'createdAt'];
+      let optionalFields = ['description', 'dueDate', 'isRecurring', 'recurrence', 'recurrenceAnchor', 'projectId', 'order'];
+      
+      let allAllowed = requiredFields.concat(optionalFields);
+
+      return task.keys().hasAll(requiredFields)
+        && task.keys().hasOnly(allAllowed)
+        && task.userId is string && task.userId == request.auth.uid
+        && task.content is string && task.content.size() > 0 && task.content.size() <= 500
+        && task.isCompleted is bool
+        && task.createdAt is timestamp
+        // Optional field validations
+        && (!('description' in task) || task.description is string && task.description.size() <= 2000)
+        && (!('dueDate' in task) || task.dueDate == null || (task.dueDate is string && task.dueDate.size() <= 20))
+        && (!('isRecurring' in task) || task.isRecurring is bool)
+        && (!('recurrence' in task) || task.recurrence == null || (task.recurrence is string && task.recurrence.size() <= 100))
+        && (!('recurrenceAnchor' in task) || task.recurrenceAnchor == null || (task.recurrenceAnchor is string && task.recurrenceAnchor.size() <= 20))
+        && (!('projectId' in task) || task.projectId == null || (task.projectId is string && task.projectId.size() <= 100))
+        && (!('order' in task) || task.order is number);
+    }
+
+    function isValidProject(project) {
+      let requiredFields = ['userId', 'name', 'createdAt'];
+      let optionalFields = ['color', 'icon'];
+      let allAllowed = requiredFields.concat(optionalFields);
+
+      return project.keys().hasAll(requiredFields)
+        && project.keys().hasOnly(allAllowed)
+        && project.userId is string && project.userId == request.auth.uid
+        && project.name is string && project.name.size() > 0 && project.name.size() <= 100
+        && project.createdAt is timestamp
+        && (!('color' in project) || project.color is string && project.color.size() <= 30)
+        && (!('icon' in project) || project.icon == null || (project.icon is string && project.icon.size() <= 10));
+    }
+
     // TASKS Collection
     match /tasks/{taskId} {
-      // Allow create if the new document's 'userId' matches the authenticated user
-      allow create: if isOwner(request.resource.data.userId);
-      
-      // Allow update if owner AND userId remains the same
-      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
-
-      // Allow read/delete if owner
+      allow create: if isValidTask(request.resource.data);
+      allow update: if isOwner(resource.data.userId)
+                    && isUserIdUnchanged()
+                    && isValidTask(request.resource.data);
       allow read, delete: if isOwner(resource.data.userId);
     }
 
     // PROJECTS Collection
     match /projects/{projectId} {
-      allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+      allow create: if isValidProject(request.resource.data);
+      allow update: if isOwner(resource.data.userId)
+                    && isUserIdUnchanged()
+                    && isValidProject(request.resource.data);
       allow read, delete: if isOwner(resource.data.userId);
     }
 
-    // Default: Deny everything else
     match /{document=**} {
       allow read, write: if false;
     }

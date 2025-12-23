@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { parseTaskInput } from '../utils/nlpParser';
 import { addTask } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,9 +32,9 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
 
 
     // Force open if isModal
-    useEffect(() => {
-        if (isModal) setIsOpen(true);
-    }, [isModal]);
+    // useEffect(() => {
+    //    if (isModal) setIsOpen(true);
+    // }, [isModal]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
