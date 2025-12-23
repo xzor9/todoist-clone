@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { toggleTaskCompletion, deleteTask, updateTaskContent } from '../services/todo';
 import { FaTrash, FaPen, FaCheck } from 'react-icons/fa';
 import styles from './TaskItem.module.css';
-import { useAuth } from '../contexts/AuthContext';
+// import { useAuth } from '../contexts/AuthContext'; // Removed unused
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { FaGripVertical } from 'react-icons/fa';
@@ -13,7 +13,7 @@ import { useProjects } from '../contexts/projectHooks';
 export default function TaskItem({ task, onTaskClick }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(task.content);
-    const { currentUser } = useAuth();
+    // const { currentUser } = useAuth(); // Removed unused
     const { projects } = useProjects();
 
     const project = projects.find(p => p.id === task.projectId);
