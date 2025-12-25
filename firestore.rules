@@ -17,13 +17,44 @@ service cloud.firestore {
       return request.resource.data.userId == resource.data.userId;
     }
 
+    // Schema Validation Helpers
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    function isValidTask(task) {
+      // content, isCompleted, userId, createdAt are strictly required
+      return hasRequiredFields(task, ['userId', 'content', 'isCompleted', 'createdAt'])
+        && task.userId is string
+        && task.content is string && task.content.size() > 0 && task.content.size() <= 2000
+        && task.isCompleted is bool
+        && task.createdAt is timestamp
+        // optional or nullable fields
+        && (task.get('isRecurring', false) is bool)
+        && (task.get('description', '') is string)
+        && (task.get('dueDate', null) == null || task.dueDate is string)
+        && (task.get('recurrence', null) == null || task.recurrence is string)
+        && (task.get('projectId', null) == null || task.projectId is string)
+        && (task.get('order', 0) is number)
+        && (task.get('recurrenceAnchor', null) == null || task.recurrenceAnchor is string);
+    }
+
+    function isValidProject(project) {
+      return hasRequiredFields(project, ['userId', 'name', 'color', 'createdAt'])
+        && project.userId is string
+        && project.name is string && project.name.size() > 0 && project.name.size() <= 100
+        && project.color is string
+        && project.createdAt is timestamp
+        && (project.get('icon', null) == null || project.icon is string);
+    }
+
     // TASKS Collection
     match /tasks/{taskId} {
-      // Allow create if the new document's 'userId' matches the authenticated user
-      allow create: if isOwner(request.resource.data.userId);
+      // Allow create if the new document's 'userId' matches the authenticated user AND data is valid
+      allow create: if isOwner(request.resource.data.userId) && isValidTask(request.resource.data);
       
-      // Allow update if owner AND userId remains the same
-      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+      // Allow update if owner AND userId remains the same AND data is valid
+      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged() && isValidTask(request.resource.data);
 
       // Allow read/delete if owner
       allow read, delete: if isOwner(resource.data.userId);
@@ -31,8 +62,8 @@ service cloud.firestore {
 
     // PROJECTS Collection
     match /projects/{projectId} {
-      allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+      allow create: if isOwner(request.resource.data.userId) && isValidProject(request.resource.data);
+      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged() && isValidProject(request.resource.data);
       allow read, delete: if isOwner(resource.data.userId);
     }
 
