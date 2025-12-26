@@ -17,13 +17,54 @@ service cloud.firestore {
       return request.resource.data.userId == resource.data.userId;
     }
 
+    // Data Validation Helpers
+    // We use .get(field, null) to safely handle optional fields.
+    function isValidTask() {
+      let data = request.resource.data;
+      return
+        // Required Fields
+        data.userId is string &&
+        data.content is string &&
+        data.isCompleted is bool &&
+        data.createdAt is timestamp &&
+
+        // Optional Fields (Allow missing, null, or correct type)
+        (data.get('description', null) == null || data.description is string) &&
+        (data.get('dueDate', null) == null || data.dueDate is string || data.dueDate is timestamp) &&
+        (data.get('isRecurring', null) == null || data.isRecurring is bool) &&
+        (data.get('recurrence', null) == null || data.recurrence is string) &&
+        (data.get('recurrenceAnchor', null) == null || data.recurrenceAnchor is string || data.recurrenceAnchor is timestamp) &&
+        (data.get('projectId', null) == null || data.projectId is string) &&
+        (data.get('order', null) == null || data.order is number) &&
+
+        // Constraints
+        data.content.size() > 0 && data.content.size() <= 1000 &&
+        (data.get('description', null) == null || data.description.size() <= 5000);
+    }
+
+    function isValidProject() {
+      let data = request.resource.data;
+      return
+        // Required Fields
+        data.userId is string &&
+        data.name is string &&
+        data.color is string &&
+        data.createdAt is timestamp &&
+
+        // Optional Fields
+        (data.get('icon', null) == null || data.icon is string) &&
+
+        // Constraints
+        data.name.size() > 0 && data.name.size() <= 100;
+    }
+
     // TASKS Collection
     match /tasks/{taskId} {
-      // Allow create if the new document's 'userId' matches the authenticated user
-      allow create: if isOwner(request.resource.data.userId);
+      // Allow create if the new document's 'userId' matches the authenticated user AND data is valid
+      allow create: if isOwner(request.resource.data.userId) && isValidTask();
       
-      // Allow update if owner AND userId remains the same
-      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+      // Allow update if owner AND userId remains the same AND data is valid
+      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged() && isValidTask();
 
       // Allow read/delete if owner
       allow read, delete: if isOwner(resource.data.userId);
@@ -31,8 +72,8 @@ service cloud.firestore {
 
     // PROJECTS Collection
     match /projects/{projectId} {
-      allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged();
+      allow create: if isOwner(request.resource.data.userId) && isValidProject();
+      allow update: if isOwner(resource.data.userId) && isUserIdUnchanged() && isValidProject();
       allow read, delete: if isOwner(resource.data.userId);
     }
 
