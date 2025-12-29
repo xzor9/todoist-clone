@@ -13,6 +13,7 @@ import {
     getDoc
 } from 'firebase/firestore';
 import { addDays, addWeeks, addMonths, parseISO, format } from 'date-fns';
+import { validateTaskInput, validateTaskContent, validateTaskDescription, validateProjectInput } from './validation';
 
 const COLLECTION_NAME = 'tasks';
 
@@ -114,6 +115,7 @@ export async function deleteTask(taskId) {
 }
 
 export async function updateTaskContent(taskId, newContent) {
+    validateTaskContent(newContent);
     const taskRef = doc(db, COLLECTION_NAME, taskId);
     return updateDoc(taskRef, {
         content: newContent
@@ -153,6 +155,7 @@ export function subscribeToProjects(userId, callback) {
 }
 
 export async function addProject(userId, name, color, icon = null) {
+    validateProjectInput(name);
     return addDoc(collection(db, PROJECTS_COLLECTION), {
         userId,
         name,
@@ -176,6 +179,7 @@ export async function deleteProject(projectId) {
 
 // Updated addTask to include project info and description
 export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null, description = "", recurrenceAnchor = null) {
+    validateTaskInput(content, description);
     return addDoc(collection(db, COLLECTION_NAME), {
         userId,
         content,
@@ -202,6 +206,7 @@ export async function getTask(taskId) {
 }
 
 export async function updateTaskDescription(taskId, description) {
+    validateTaskDescription(description);
     const taskRef = doc(db, COLLECTION_NAME, taskId);
     return updateDoc(taskRef, {
         description: description
