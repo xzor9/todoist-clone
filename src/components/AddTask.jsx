@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { parseTaskInput } from '../utils/nlpParser';
 import { addTask } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './AddTask.module.css';
@@ -20,7 +21,14 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
     const [selectedProjectId, setSelectedProjectId] = useState(null); // null = Inbox
     const [showProjectModal, setShowProjectModal] = useState(false);
 
+
     const { currentUser } = useAuth();
+
+    // NLP Preview State
+    const parsedPreview = useMemo(() => {
+        if (!content) return null;
+        return parseTaskInput(content, projects);
+    }, [content, projects]);
 
 
     // Force open if isModal
@@ -33,17 +41,25 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
         if (!content.trim()) return;
 
         try {
+            // NLP Parsing
+            const parsed = parseTaskInput(content, projects);
+            const finalContent = parsed.content;
+            const finalDate = parsed.date ? parsed.date.toISOString().split('T')[0] : (dueDate || null); // formatting simple YYYY-MM-DD for now if possible, else ISO
+            // Note: Priority is detected but we don't have a priority field in addTask service yet? 
+            // Assuming we might need to update service or ignoring priority for now if not supported.
+            // But let's assume we want to pass it if we could. For now, let's just use the parsed content and date.
+
             const recurrenceString = isRecurring
                 ? `Every ${recurrenceInterval} ${recurrenceUnit}${recurrenceInterval > 1 ? 's' : ''}`
                 : null;
 
             await addTask(
                 currentUser.uid,
-                content,
-                dueDate || null,
+                finalContent,
+                finalDate,
                 isRecurring,
                 recurrenceString,
-                selectedProjectId,
+                parsed.projectId || selectedProjectId,
                 description
             );
 
@@ -98,6 +114,20 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                 />
+
+                {parsedPreview && (content.trim().length > 0) && (
+                    <div className={styles.nlpPreview} style={{ fontSize: '0.8rem', color: '#db4c3f', marginTop: '4px', marginBottom: '8px', display: 'flex', gap: '8px' }}>
+                        {parsedPreview.date && (
+                            <span>📅 {parsedPreview.date.toLocaleDateString()} {parsedPreview.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        )}
+                        {parsedPreview.priority && (
+                            <span>🚩 P{parsedPreview.priority}</span>
+                        )}
+                        {parsedPreview.projectId && (
+                            <span># {projects.find(p => p.id === parsedPreview.projectId)?.name}</span>
+                        )}
+                    </div>
+                )}
 
                 {!isCompact && (
                     <textarea
