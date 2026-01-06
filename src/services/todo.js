@@ -12,7 +12,7 @@ import {
     serverTimestamp,
     getDoc
 } from 'firebase/firestore';
-import { addDays, addWeeks, addMonths, parseISO, format } from 'date-fns';
+import { addDays, addWeeks, addMonths, parseISO, format, startOfDay } from 'date-fns';
 
 const COLLECTION_NAME = 'tasks';
 
@@ -73,18 +73,27 @@ export async function toggleTaskCompletion(taskId, currentStatus) {
 
         const anchorDate = task.recurrenceAnchor ? parseISO(task.recurrenceAnchor) : currentDueDate;
 
+        let addFn = addDays;
+        let amount = 1;
+        const today = startOfDay(new Date());
+
         if (lowerRecurrence.includes('day') || lowerRecurrence === 'daily') {
             const match = lowerRecurrence.match(/every (\d+) day/);
-            const days = match ? parseInt(match[1]) : 1;
-            nextDate = addDays(anchorDate, days);
+            amount = match ? parseInt(match[1]) : 1;
+            addFn = addDays;
         } else if (lowerRecurrence.includes('week') || lowerRecurrence === 'weekly') {
             const match = lowerRecurrence.match(/every (\d+) week/);
-            const weeks = match ? parseInt(match[1]) : 1;
-            nextDate = addWeeks(anchorDate, weeks);
+            amount = match ? parseInt(match[1]) : 1;
+            addFn = addWeeks;
         } else if (lowerRecurrence.includes('month') || lowerRecurrence === 'monthly') {
             const match = lowerRecurrence.match(/every (\d+) month/);
-            const months = match ? parseInt(match[1]) : 1;
-            nextDate = addMonths(anchorDate, months);
+            amount = match ? parseInt(match[1]) : 1;
+            addFn = addMonths;
+        }
+
+        nextDate = addFn(anchorDate, amount);
+        while (nextDate <= today) {
+            nextDate = addFn(nextDate, amount);
         }
 
         if (nextDate) {

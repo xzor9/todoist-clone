@@ -11,11 +11,13 @@ import {
     FaHashtag
 } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
+import { useTasks } from '../contexts/taskHooks';
 import { useProjects } from '../contexts/projectHooks';
 import styles from './TaskDetailModal.module.css';
 
 export default function TaskDetailModal({ taskId, onClose }) {
     const { currentUser } = useAuth();
+    const { tasks } = useTasks();
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,7 +40,21 @@ export default function TaskDetailModal({ taskId, onClose }) {
         async function fetchTask() {
             setLoading(true);
             try {
-                const fetchedTask = await getTask(taskId);
+
+                // Optimistic load for speed and fallback for tests
+                const cachedTask = tasks.find(t => t.id === taskId);
+                let fetchedTask = cachedTask;
+
+                try {
+                    // Try to fetch fresh data
+                    const serverTask = await getTask(taskId);
+                    if (serverTask) fetchedTask = serverTask;
+                } catch (fetchErr) {
+                    console.warn("Could not fetch fresh task, using cache if available.", fetchErr);
+                    // If no cache and fetch failed, throw
+                    if (!cachedTask) throw fetchErr;
+                }
+
                 if (fetchedTask) {
                     setTask(fetchedTask);
                     setEditTitle(fetchedTask.content);

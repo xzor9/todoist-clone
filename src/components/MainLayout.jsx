@@ -13,9 +13,13 @@ import { FaBars } from 'react-icons/fa';
 import styles from './MainLayout.module.css';
 import { useTasks } from '../contexts/taskHooks';
 import AddTask from './AddTask';
+import SearchModal from './SearchModal';
 
 export default function MainLayout({ children, activeTab, setActiveTab }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+    const openSearchModal = () => setIsSearchModalOpen(true);
+    const closeSearchModal = () => setIsSearchModalOpen(false);
     const { setTasks, reorderTasks, updateTaskProject, isAddTaskModalOpen, closeAddTaskModal } = useTasks();
 
     const sensors = useSensors(
@@ -109,6 +113,7 @@ export default function MainLayout({ children, activeTab, setActiveTab }) {
                         activeTab={activeTab}
                         setActiveTab={setActiveTab}
                         closeSidebar={() => setIsSidebarOpen(false)}
+                        openSearchModal={openSearchModal}
                     />
                 </div>
 
@@ -120,6 +125,10 @@ export default function MainLayout({ children, activeTab, setActiveTab }) {
                 {/* Global Add Task Modal */}
                 {isAddTaskModalOpen && (
                     <AddTask isModal={true} onClose={closeAddTaskModal} />
+                )}
+
+                {isSearchModalOpen && (
+                    <SearchModal onClose={closeSearchModal} />
                 )}
             </div>
         </DndContext>

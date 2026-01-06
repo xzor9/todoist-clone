@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun, FaLayerGroup, FaTrash } from 'react-icons/fa';
+import { FaInbox, FaCalendarDay, FaCalendarAlt, FaPlus, FaSignOutAlt, FaHashtag, FaMoon, FaSun, FaLayerGroup, FaTrash, FaSearch } from 'react-icons/fa';
 import styles from './Sidebar.module.css';
 import AddProjectModal from './AddProjectModal';
 import { useDroppable } from '@dnd-kit/core';
@@ -148,7 +148,7 @@ function DroppableProjectItem({ project, activeTab, setActiveTab, onDeleteProjec
 }
 
 
-export default function Sidebar({ activeTab, setActiveTab, closeSidebar }) {
+export default function Sidebar({ activeTab, setActiveTab, closeSidebar, openSearchModal }) {
     const { currentUser, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { openAddTaskModal, tasks } = useTasks();
@@ -209,6 +209,13 @@ export default function Sidebar({ activeTab, setActiveTab, closeSidebar }) {
 
             <nav className={styles.nav}>
                 <ul>
+                    <li className={styles.navItem} onClick={() => {
+                        openSearchModal();
+                        if (window.innerWidth <= 768 && closeSidebar) closeSidebar();
+                    }}>
+                        <span className={styles.icon}><FaSearch color="#666" /></span>
+                        <span className={styles.label}>Search</span>
+                    </li>
                     {navItems.map(item => {
                         let count = 0;
                         if (item.id === 'inbox') {
