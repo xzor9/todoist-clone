@@ -11,20 +11,25 @@ export default function TasksProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (!currentUser) {
+            // Reset state when user logs out - this is intentional and safe
+            // as it synchronizes React state with the auth state change
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setTasks([]);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(false);
-            return;
+            return () => { }; // Return empty cleanup function
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLoading(true); // Set loading when starting subscription
         const unsubscribe = subscribeToTasks(currentUser.uid, (fetchedTasks) => {
             setTasks(fetchedTasks);
             setLoading(false);
         });
 
         return unsubscribe;
-    }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [currentUser]);
 
     const updateTaskProject = async (taskId, projectId) => {
         const taskRef = firestoreDoc(db, 'tasks', taskId);

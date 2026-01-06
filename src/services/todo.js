@@ -12,7 +12,7 @@ import {
     serverTimestamp,
     getDoc
 } from 'firebase/firestore';
-import { addDays, addWeeks, addMonths, parseISO, format, startOfDay } from 'date-fns';
+import { addDays, addWeeks, addMonths, addYears, parseISO, format, startOfDay } from 'date-fns';
 
 const COLLECTION_NAME = 'tasks';
 
@@ -89,6 +89,10 @@ export async function toggleTaskCompletion(taskId, currentStatus) {
             const match = lowerRecurrence.match(/every (\d+) month/);
             amount = match ? parseInt(match[1]) : 1;
             addFn = addMonths;
+        } else if (lowerRecurrence.includes('year') || lowerRecurrence === 'yearly') {
+            const match = lowerRecurrence.match(/every (\d+) year/);
+            amount = match ? parseInt(match[1]) : 1;
+            addFn = addYears;
         }
 
         nextDate = addFn(anchorDate, amount);

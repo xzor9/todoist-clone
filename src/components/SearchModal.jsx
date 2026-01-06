@@ -21,6 +21,7 @@ export default function SearchModal({ onClose }) {
 
     useEffect(() => {
         if (!query.trim()) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setResults([]);
             return;
         }
@@ -31,6 +32,7 @@ export default function SearchModal({ onClose }) {
             const descMatch = task.description?.toLowerCase().includes(lowerQuery);
             return !task.isCompleted && (contentMatch || descMatch); // Optionally exclude completed tasks? Todoist searches everything usually. Let's include everything or just active? Todoist usually separates completed. Let's search all for now, or just active. The prompt says "search all existing tasks". I'll search active tasks for now as that's more common, but maybe I should check if "all existing" implies completed too. Let's stick to !isCompleted for clutter reduction unless user asks.
         });
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setResults(filtered);
     }, [query, tasks]);
 

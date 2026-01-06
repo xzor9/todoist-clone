@@ -10,13 +10,11 @@ import {
     FaRegClock,
     FaHashtag
 } from 'react-icons/fa';
-import { useAuth } from '../contexts/AuthContext';
 import { useTasks } from '../contexts/taskHooks';
 import { useProjects } from '../contexts/projectHooks';
 import styles from './TaskDetailModal.module.css';
 
 export default function TaskDetailModal({ taskId, onClose }) {
-    const { currentUser } = useAuth();
     const { tasks } = useTasks();
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -91,7 +89,7 @@ export default function TaskDetailModal({ taskId, onClose }) {
         if (taskId) {
             fetchTask();
         }
-    }, [taskId]);
+    }, [taskId, tasks]);
 
 
     const handleBackdropClick = (e) => {

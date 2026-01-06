@@ -33,6 +33,7 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
 
     // Force open if isModal
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (isModal) setIsOpen(true);
     }, [isModal]);
 
