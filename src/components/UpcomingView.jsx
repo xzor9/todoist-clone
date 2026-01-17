@@ -12,9 +12,9 @@ import {
 } from 'date-fns';
 import { FaChevronLeft, FaChevronRight, FaPlus, FaCheck, FaChevronDown, FaChevronUp, FaCalendarAlt, FaInbox, FaTimes } from 'react-icons/fa';
 import { useTasks } from '../contexts/taskHooks';
+import { useProjects } from '../contexts/projectHooks';
 import { toggleTaskCompletion, updateTaskDate } from '../services/todo';
-import { subscribeToProjects } from '../services/todo';
-import { useAuth } from '../contexts/AuthContext';
+
 import styles from './UpcomingView.module.css';
 import AddTask from './AddTask';
 
@@ -171,9 +171,9 @@ const MobileAddTaskModal = ({ onClose, defaultDate }) => {
 
 export default function UpcomingView({ onTaskClick }) {
     const { tasks, loading } = useTasks();
-    const { currentUser } = useAuth();
+
     const [startDate, setStartDate] = useState(startOfToday());
-    const [projects, setProjects] = useState([]);
+    const { projects } = useProjects();
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [showAddTask, setShowAddTask] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null); // For scrolling highlighting
@@ -185,13 +185,6 @@ export default function UpcomingView({ onTaskClick }) {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-
-    useEffect(() => {
-        if (currentUser) {
-            const unsubscribe = subscribeToProjects(currentUser.uid, setProjects);
-            return unsubscribe;
-        }
-    }, [currentUser]);
 
     const getProjectDetails = (projectId) => {
         const project = projects.find(p => p.id === projectId);
