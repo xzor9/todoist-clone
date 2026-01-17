@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { subscribeToTasks, reorderTasks } from '../services/todo';
 import { doc as firestoreDoc, updateDoc as firestoreUpdateDoc } from 'firebase/firestore';
 import { TasksContext } from './taskHooks';
+import { isToday, isBefore, parseISO, startOfToday } from 'date-fns';
 
 export default function TasksProvider({ children }) {
     const { currentUser } = useAuth();
@@ -30,6 +31,25 @@ export default function TasksProvider({ children }) {
 
         return unsubscribe;
     }, [currentUser]);
+
+    // Update App Badge (iOS/PWA)
+    useEffect(() => {
+        if ('setAppBadge' in navigator && tasks.length > 0) {
+            const today = startOfToday();
+            const badgeCount = tasks.filter(t => {
+                if (t.isCompleted || !t.dueDate) return false;
+                const date = parseISO(t.dueDate);
+                return isToday(date) || isBefore(date, today);
+            }).length;
+
+            navigator.setAppBadge(badgeCount).catch(err => {
+                // Silently fail if permission not granted or api issues
+                console.debug('Failed to set app badge', err);
+            });
+        } else if ('clearAppBadge' in navigator) {
+            navigator.clearAppBadge().catch(() => { });
+        }
+    }, [tasks]);
 
     const updateTaskProject = async (taskId, projectId) => {
         const taskRef = firestoreDoc(db, 'tasks', taskId);

@@ -289,6 +289,24 @@ export default function Sidebar({ activeTab, setActiveTab, closeSidebar, openSea
                     <span className={styles.icon}>{theme === 'dark' ? <FaSun /> : <FaMoon />}</span>
                     <span className={styles.label}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                 </button>
+
+                {('setAppBadge' in navigator) && Notification.permission === 'default' && (
+                    <button
+                        onClick={() => Notification.requestPermission().then(() => window.location.reload())}
+                        className={styles.navItem}
+                        style={{
+                            width: '100%',
+                            justifyContent: 'flex-start',
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            marginTop: '4px'
+                        }}
+                    >
+                        <span className={styles.icon}>🔔</span>
+                        <span className={styles.label}>Enable Badges</span>
+                    </button>
+                )}
             </div>
 
             {showProjectModal && (
