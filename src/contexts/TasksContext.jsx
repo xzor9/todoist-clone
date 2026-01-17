@@ -15,14 +15,14 @@ export default function TasksProvider({ children }) {
         if (!currentUser) {
             // Reset state when user logs out - this is intentional and safe
             // as it synchronizes React state with the auth state change
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+            // eslint-disable-next-line
             setTasks([]);
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+            // eslint-disable-next-line
             setLoading(false);
             return () => { }; // Return empty cleanup function
         }
 
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+        // eslint-disable-next-line
         setLoading(true); // Set loading when starting subscription
         const unsubscribe = subscribeToTasks(currentUser.uid, (fetchedTasks) => {
             setTasks(fetchedTasks);

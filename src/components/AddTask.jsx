@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { parseTaskInput } from '../utils/nlpParser';
+import { formatRecurrence } from '../utils/recurrence';
 import { addTask } from '../services/todo';
 import { useAuth } from '../contexts/AuthContext';
 import styles from './AddTask.module.css';
@@ -51,7 +52,7 @@ export default function AddTask({ defaultDate, isModal, onClose, isCompact, defa
             // But let's assume we want to pass it if we could. For now, let's just use the parsed content and date.
 
             const recurrenceString = isRecurring
-                ? `Every ${recurrenceInterval} ${recurrenceUnit}${recurrenceInterval > 1 ? 's' : ''}`
+                ? formatRecurrence(recurrenceInterval, recurrenceUnit)
                 : null;
 
             await addTask(

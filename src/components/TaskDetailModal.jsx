@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getTask, updateTaskContent, toggleTaskCompletion, updateTaskDescription, updateTaskProject, updateTaskDate } from '../services/todo';
+import { parseRecurrence, formatRecurrence } from '../utils/recurrence';
 import {
     FaTimes,
     FaEllipsisH,
@@ -60,20 +61,10 @@ export default function TaskDetailModal({ taskId, onClose }) {
                     setEditDueDate(fetchedTask.dueDate || '');
                     setIsRecurring(fetchedTask.isRecurring || false);
 
-                    // Parse recurrence string if exists (Simple parsing)
                     if (fetchedTask.recurrence) {
-                        // Example: "Every 2 Weeks"
-                        // Very basic parser matching AddTask logic
-                        const parts = fetchedTask.recurrence.split(' ');
-                        // parts[0] = "Every"
-                        // parts[1] = number
-                        // parts[2] = Unit(s)
-                        if (parts.length >= 3) {
-                            setRecurrenceInterval(parseInt(parts[1]) || 1);
-                            let unit = parts[2];
-                            if (unit.endsWith('s')) unit = unit.slice(0, -1);
-                            setRecurrenceUnit(unit);
-                        }
+                        const { interval, unit } = parseRecurrence(fetchedTask.recurrence);
+                        setRecurrenceInterval(interval);
+                        setRecurrenceUnit(unit);
                     }
 
                 } else {
@@ -114,7 +105,7 @@ export default function TaskDetailModal({ taskId, onClose }) {
 
     const handleDateSave = async () => {
         const recurrenceString = isRecurring
-            ? `Every ${recurrenceInterval} ${recurrenceUnit}${recurrenceInterval > 1 ? 's' : ''}`
+            ? formatRecurrence(recurrenceInterval, recurrenceUnit)
             : null;
 
         await updateTaskDate(taskId, editDueDate || null, isRecurring, recurrenceString);

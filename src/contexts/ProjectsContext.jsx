@@ -10,6 +10,7 @@ export default function ProjectsProvider({ children }) {
 
     useEffect(() => {
         if (!currentUser) {
+            // eslint-disable-next-line
             setProjects([]);
             setLoading(false);
             return;

@@ -9,7 +9,6 @@ export default function SearchModal({ onClose }) {
     const { tasks } = useTasks();
     const { projects } = useProjects();
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState([]);
     const [selectedTaskId, setSelectedTaskId] = useState(null);
     const inputRef = useRef(null);
 
@@ -19,21 +18,15 @@ export default function SearchModal({ onClose }) {
         }
     }, []);
 
-    useEffect(() => {
-        if (!query.trim()) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setResults([]);
-            return;
-        }
+    const results = React.useMemo(() => {
+        if (!query.trim()) return [];
 
         const lowerQuery = query.toLowerCase();
-        const filtered = tasks.filter(task => {
+        return tasks.filter(task => {
             const contentMatch = task.content?.toLowerCase().includes(lowerQuery);
-            const descMatch = task.description?.toLowerCase().includes(lowerQuery);
-            return !task.isCompleted && (contentMatch || descMatch); // Optionally exclude completed tasks? Todoist searches everything usually. Let's include everything or just active? Todoist usually separates completed. Let's search all for now, or just active. The prompt says "search all existing tasks". I'll search active tasks for now as that's more common, but maybe I should check if "all existing" implies completed too. Let's stick to !isCompleted for clutter reduction unless user asks.
+            const descriptionMatch = task.description?.toLowerCase().includes(lowerQuery);
+            return !task.isCompleted && (contentMatch || descriptionMatch);
         });
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setResults(filtered);
     }, [query, tasks]);
 
     const getProjectName = (projectId) => {
