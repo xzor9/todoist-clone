@@ -10,7 +10,7 @@ const Loading = () => <div style={{ display: 'flex', justifyContent: 'center', a
 
 function App() {
   const { currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('inbox');
+  const [activeTab, setActiveTab] = useState('upcoming');
 
   if (!currentUser) {
     return (
