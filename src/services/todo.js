@@ -16,6 +16,18 @@ import { addDays, addWeeks, addMonths, addYears, parseISO, format, startOfDay } 
 
 const COLLECTION_NAME = 'tasks';
 
+function validateTaskInput(content, description = "") {
+    if (!content || typeof content !== 'string' || !content.trim()) {
+        throw new Error("Task content cannot be empty.");
+    }
+    if (content.length > 500) {
+        throw new Error("Task content exceeds maximum length of 500 characters.");
+    }
+    if (description && description.length > 5000) {
+        throw new Error("Task description exceeds maximum length of 5000 characters.");
+    }
+}
+
 export function subscribeToTasks(userId, callback) {
     if (!userId) return () => { };
 
@@ -127,6 +139,7 @@ export async function deleteTask(taskId) {
 }
 
 export async function updateTaskContent(taskId, newContent) {
+    validateTaskInput(newContent);
     const taskRef = doc(db, COLLECTION_NAME, taskId);
     return updateDoc(taskRef, {
         content: newContent
@@ -189,6 +202,7 @@ export async function deleteProject(projectId) {
 
 // Updated addTask to include project info and description
 export async function addTask(userId, content, date = null, isRecurring = false, recurrence = null, projectId = null, description = "", recurrenceAnchor = null) {
+    validateTaskInput(content, description);
     return addDoc(collection(db, COLLECTION_NAME), {
         userId,
         content,
@@ -215,6 +229,13 @@ export async function getTask(taskId) {
 }
 
 export async function updateTaskDescription(taskId, description) {
+    // Validate description only (pass empty content to bypass content check, or create specific validator)
+    // Reusing validateTaskInput but needing to handle content check.
+    // Let's just check description length directly here to avoid refactoring validation logic too much
+    if (description && description.length > 5000) {
+        throw new Error("Task description exceeds maximum length of 5000 characters.");
+    }
+
     const taskRef = doc(db, COLLECTION_NAME, taskId);
     return updateDoc(taskRef, {
         description: description
